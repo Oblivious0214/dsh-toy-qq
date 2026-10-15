@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { QQ_SKIN_SETTINGS_NS, settingsToConfig, type QQSkinSettings } from '../src/client/settings.ts'
 
 describe('QQ skin settings', () => {
-  it('exports the dsh-qq-skin namespace', () => {
-    expect(QQ_SKIN_SETTINGS_NS).toBe('dsh-qq-skin')
+  it('addresses the profile entry id as its settings namespace', () => {
+    expect(QQ_SKIN_SETTINGS_NS).toBe('qq-skin')
   })
 
   it('resolves to defaults when no setting section and no fallback', () => {
