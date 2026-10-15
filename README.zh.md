@@ -65,7 +65,13 @@ App 设置里注册的 **「QQ 皮肤」** 设置行，可视化切换色板 / �
 
 ## 环境要求(dsh 版本)
 
-构建/运行目标为 **deepseek-harness(`dsh`) 0.1.2-alpha.5 及以上**。该行移除了客户端 `@deepseek-ai/dsh-client-runtime` 包(客户端 Runtime 拆分重构,2026-08):store 引擎改由 `@deepseek-ai/dsh-client-store` 提供,客户端上下文改为 cordis `Context` + 各 UI 包的 `/client` 类型合并,宿主侧设置注册改为 `ctx.settings.register` 直传命名空间字符串。更早的 dsh 版本与本插件不兼容(所依赖的包名已不存在,`pnpm i` 会报 `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`)。
+构建/运行目标为 **deepseek-harness(`dsh`) 0.2.0 及以上**。0.2 改掉了设置系统的两处契约(2026-10):
+
+- **设置命名空间就是 profile 条目 id**:`ctx.settings.register(命名空间, schema)` 已删除。插件设置 schema 改为宿主入口的 `Config` 导出,且**每个字段都必须 `.volatile()`**——设置面板只投影 volatile 字段,非 volatile 字段既不出现在描述里也不可写。命名空间取 `cordis.patch.yml` 中该条目的 `id`(`qq-skin`),不再是插件自选字符串。
+- **浏览器半区读写设置改走 `ctx.configForms`**:`ctx.settingsScope` 服务已删除。客户端用 `ctx.configForms.get('qq-skin')` 拿到该条目的表单,快照值即宿主解析后的完整配置(默认值 → profile 配置 → 用户改写),写入用 `set(field, value)`。0.2 的客户端条目也不再收到 config 参数,故出厂默认值只作首帧兜底。
+- 皮肤在 General 区自带设置行,故宿主侧用 `settings.configure({ auto: false })` 关掉自动生成页。
+
+更早的 dsh 版本(0.1.x)与本插件不兼容:那时没有 `settings.configure` / `ctx.configForms`,也没有 volatile 配置投影;`pnpm i` 装的就是 0.2 的包。
 
 ## 安装
 
@@ -94,7 +100,8 @@ dsh plugin --profile web add link:../dsh-qq-skin
 dsh plugin --profile web remove dsh-qq-skin
 ```
 
-插件声明了 `dsh.client`（`platform: web`）并注入 `theme` 等协作服务，Web 启动会加载
+插件声明了 `dsh.client`（`platform: web`）并注入 `theme`/`slots`/`locale`/`remote`/`configForms`
+五个协作服务，Web 启动会加载
 其客户端 bundle，`ui-theme` 激活后立即叠加皮肤层。
 
 ## 开发

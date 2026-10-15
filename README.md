@@ -65,7 +65,13 @@ Tokens that are **not** overridden keep the product default, so a QQ-skin run st
 
 ## Requirements (dsh version)
 
-Built and run against **deepseek-harness (`dsh`) 0.1.2-alpha.5 or later**. That line removed the client `@deepseek-ai/dsh-client-runtime` package (client "Runtime" split refactor, 2026-08): the store engine now comes from `@deepseek-ai/dsh-client-store`, the client context is cordis `Context` plus the `/client` type merges of the UI packages, and host-side settings registration takes the namespace string straight in `ctx.settings.register`. Earlier dsh versions are not compatible — the dependency no longer exists and `pnpm i` fails with `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`.
+Built and run against **deepseek-harness (`dsh`) 0.2.0 or later**. dsh 0.2 changed two settings-system contracts (2026-10):
+
+- **The settings namespace IS the profile entry id.** `ctx.settings.register(ns, schema)` is gone: the plugin's settings schema is now the `Config` export of its host entry, and **every field must be `.volatile()`** — the settings panel projects volatile fields only, so a non-volatile field appears in no descriptor and accepts no write. The namespace comes from the `id` of the entry in `cordis.patch.yml` (`qq-skin`), not from a string the plugin picks.
+- **The browser half reads and writes settings through `ctx.configForms`.** The `ctx.settingsScope` service is gone: the client uses `ctx.configForms.get('qq-skin')`, whose snapshot value is the fully resolved host config (schema defaults → profile config → user edits) and whose `set(field, value)` persists an edit. A 0.2 client entry no longer receives a `config` argument at all, so the built-in defaults only cover the first frame.
+- The skin ships its own settings row in the General section, hence the host half calls `settings.configure({ auto: false })` to suppress the auto-generated page.
+
+Earlier dsh versions (0.1.x) are not compatible: they have no `settings.configure`, no `ctx.configForms`, and no volatile config projection.
 
 ## Install
 
@@ -96,9 +102,9 @@ Removing is equally one command:
 dsh plugin --profile web remove dsh-qq-skin
 ```
 
-The plugin declares `dsh.client` with `platform: web` and injects the `theme`
-and settings-collaboration services, so the Web boot loads its client bundle
-and applies the layer as soon as `ui-theme` is active.
+The plugin declares `dsh.client` with `platform: web` and injects the `theme`,
+`slots`, `locale`, `remote`, and `configForms` services, so the Web boot loads
+its client bundle and applies the layer as soon as `ui-theme` is active.
 
 ## Development
 
