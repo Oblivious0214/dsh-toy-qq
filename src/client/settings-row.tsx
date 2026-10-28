@@ -20,13 +20,14 @@ import type { PropsLocale, PropsRuntime, PropsStore } from '@deepseek-ai/dsh-cli
 // 槽),与 ui-theme 的 AppearanceRow 同款——交叉插件协作始终走类型引用,
 // 客户端 bundle 纯净性门禁不允许 value import。
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
-import { QQ_SKIN_PALETTES, type QQSkinPalette, type QQSkinConfig } from './config.ts'
+import { validVoiceWidths, QQ_SKIN_PALETTES, type QQSkinPalette, type QQSkinConfig } from './config.ts'
 import type { createQQSkinRowStore } from './settings-store.ts'
 import type { QQSkinSettingsKey } from './settings-locales.ts'
 import { QQ_AVATAR_DATA_URI } from './qq-avatar.ts'
 
 /** 注入的业务面:各字段的持久化写入口(经 SettingsScope.set 排队)。 */
 export interface QQSkinRowInjected {
+  setFishVoiceWidths: (value: QQSkinConfig['fishVoiceWidths']) => void
   setFishVoiceMode: (value: QQSkinConfig['fishVoiceMode']) => void
   setImmersiveQQ: (value: boolean) => void
   editDefaultAvatar: () => void
@@ -208,7 +209,7 @@ function ToggleRow({ label, checked, onChange }: {
  */
 export function QQSkinSettingsRow({
   t, useStore, setPalette, setBubbleTail, setAssistantAvatar, setChatMaxWidth,
-  setMessageSound, setTyping, editBackground, setBackgroundFit, editDefaultAvatar, setImmersiveQQ, setFishVoiceMode,
+  setMessageSound, setTyping, editBackground, setBackgroundFit, editDefaultAvatar, setImmersiveQQ, setFishVoiceMode, setFishVoiceWidths,
 }: QQSkinRowComponentProps) {
   const config = useStore(s => s.config)
   const [widthDraft, setWidthDraft] = useState(String(config.chatMaxWidth))
@@ -235,6 +236,7 @@ export function QQSkinSettingsRow({
           <option value="transcript">{t('voice.transcript')}</option>
         </select>
       </div>
+      <VoiceWidths key={`${config.fishVoiceWidths.min}:${config.fishVoiceWidths.max}`} value={config.fishVoiceWidths} save={setFishVoiceWidths} />
       <div style={fieldRowStyle}>
         <span style={fieldLabelStyle}>{t('row.defaultAvatar')}</span>
         <span style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
@@ -323,4 +325,16 @@ export function QQSkinSettingsRow({
       </div>
     </div>
   )
+}
+
+function VoiceWidths({value,save}: {value: QQSkinConfig['fishVoiceWidths'];save: QQSkinRowInjected['setFishVoiceWidths']}) {
+  const [min,setMin] = useState(String(value.min)), [max,setMax] = useState(String(value.max))
+  const draft = {min:Number(min),max:Number(max)}
+  const valid = validVoiceWidths(draft)
+  return <div style={{display:'flex',flexDirection:'column',gap:8}}>
+    <label style={fieldRowStyle}>语音条最短宽度（像素）<input aria-label="语音条最短宽度" type="number" min={140} max={640} value={min} onChange={e => setMin(e.currentTarget.value)} /></label>
+    <label style={fieldRowStyle}>语音条最长宽度（像素）<input aria-label="语音条最长宽度" type="number" min={140} max={640} value={max} onChange={e => setMax(e.currentTarget.value)} /></label>
+    {!valid && <span role="alert">请输入 140–640 的整数，最短宽度不能大于最长宽度。</span>}
+    <button type="button" disabled={!valid || (draft.min === value.min && draft.max === value.max)} onClick={() => { if (valid) save(draft) }}>保存语音条宽度</button>
+  </div>
 }

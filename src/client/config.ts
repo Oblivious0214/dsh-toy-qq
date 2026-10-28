@@ -34,6 +34,7 @@ export interface QQSkinConfig {
   typing: boolean
   immersiveQQ: boolean
   fishVoiceMode: 'voice-text' | 'transcript'
+  fishVoiceWidths: { min: number; max: number }
 }
 
 /** 默认配置(与旧行为一致:经典蓝、气泡尾巴、企鹅头像、880px 宽)。 */
@@ -50,12 +51,14 @@ export const QQ_SKIN_DEFAULT_CONFIG: QQSkinConfig = {
   typing: true,
   immersiveQQ: true,
   fishVoiceMode: 'voice-text',
+  fishVoiceWidths: { min:160, max:360 },
 }
 
 /** 合并用户配置与默认值,非法字段回落默认。 */
 export function resolveQQSkinConfig(config?: Partial<QQSkinConfig>): QQSkinConfig {
   const raw = config ?? {}
   return {
+    fishVoiceWidths: resolveVoiceWidths(raw.fishVoiceWidths),
     fishVoiceMode: raw.fishVoiceMode === 'transcript' ? 'transcript' : 'voice-text',
     avatarImage: resolveImage(config?.avatarImage),
     conversationAvatars: resolveConversationAvatars(config?.conversationAvatars),
@@ -95,4 +98,13 @@ export function resolveConversationAvatars(value: unknown): Record<string, strin
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
   return Object.fromEntries(Object.entries(value).filter(([id, image]) =>
     id.length > 0 && id.length <= 512 && id !== '__proto__' && !!resolveImage(image)))
+}
+
+export function validVoiceWidths(value: { min?: unknown; max?: unknown }): value is QQSkinConfig['fishVoiceWidths'] {
+  return typeof value.min === 'number' && typeof value.max === 'number'
+    && Number.isInteger(value.min) && Number.isInteger(value.max)
+    && value.min >= 140 && value.max <= 640 && value.min <= value.max
+}
+export function resolveVoiceWidths(value?: QQSkinConfig['fishVoiceWidths']): QQSkinConfig['fishVoiceWidths'] {
+  return value && validVoiceWidths(value) ? { ...value } : { min:160, max:360 }
 }

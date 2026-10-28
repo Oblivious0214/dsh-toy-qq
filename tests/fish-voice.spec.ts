@@ -14,7 +14,13 @@ class FakeAudio {
   listeners = new Map<string, (() => void)[]>()
   play = vi.fn(async () => {})
   pause = vi.fn()
-  constructor(public src: string) { clips.push(this) }
+  src = ''
+  currentTime = 0
+  preload = ''
+  constructor(src = '') { this.src = src; clips.push(this) }
+  load() { if (this.src) queueMicrotask(() => this.emit('loadedmetadata')) }
+  removeAttribute() { this.src = '' }
+  removeEventListener(name: string, listener: () => void) { this.listeners.set(name,(this.listeners.get(name) ?? []).filter(fn => fn !== listener)) }
   addEventListener(name: string, listener: () => void) { this.listeners.set(name,[...(this.listeners.get(name) ?? []),listener]) }
   emit(name: string) { for (const listener of this.listeners.get(name) ?? []) listener() }
 }
@@ -42,6 +48,45 @@ function fixture(turn = '1', message = 'm1') {
 }
 const tick = () => new Promise(resolve => setTimeout(resolve,20))
 describe('QQ voice replies', () => {
+  it('prepares only new current-session replies, deduplicates click, uses duration widths and cancels on switch', async () => {
+    const root = document.createElement('section'); root.dataset.conversationSession = 'current'; document.body.append(root)
+    const f = fixture(); root.append(f.flow)
+    runtime = new QQFishVoiceRuntime()
+    await tick(); expect(fetcher).not.toHaveBeenCalled()
+    let finish!: (value: unknown) => void
+    fetcher.mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+    f.marker.dataset.qqFishTime = String(Date.now()+1)
+    await tick(); expect(fetcher).toHaveBeenCalledTimes(2)
+    f.buttons()[0]!.click(); await tick(); expect(fetcher).toHaveBeenCalledTimes(2)
+    finish({ok:true,blob:async () => new Blob(['audio'])}); await tick()
+    expect(f.buttons()[0]!.textContent).toContain('3秒')
+    expect(parseFloat(f.buttons()[0]!.style.width)).toBeGreaterThan(160)
+    expect(clips.filter(clip => clip.play.mock.calls.length)).toHaveLength(1)
+    runtime.update('voice-text',{min:180,max:185}); expect(f.buttons()[0]!.style.width).toBe('185px')
+    f.buttons()[0]!.click(); f.buttons()[0]!.click(); await tick(); expect(fetcher).toHaveBeenCalledTimes(2)
+    root.dataset.conversationSession = 'other'; await tick()
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(2)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+  it('cancels queued and in-flight preparation on disposal, ignoring late responses', async () => {
+    const root = document.createElement('section'); root.dataset.conversationSession = 'current'; document.body.append(root)
+    const f = fixture(); root.append(f.flow)
+    f.texts[0]!.insertAdjacentHTML('afterend','<div data-text-interaction-source>第三段</div>')
+    let finish!: (value: unknown) => void
+    fetcher.mockImplementation(() => new Promise(resolve => { finish = resolve }))
+    runtime = new QQFishVoiceRuntime(); f.marker.dataset.qqFishTime = String(Date.now()+1); await tick()
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    runtime.dispose()
+    expect(fetcher.mock.calls.every(call => call[1].signal.aborted)).toBe(true)
+    finish({ok:true,blob:async () => new Blob(['audio'])}); await tick()
+    expect(clips).toHaveLength(0); expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+  it('reuses prepared assets across DOM replacement', async () => {
+    const f = fixture(); runtime = new QQFishVoiceRuntime(); f.buttons()[0]!.click(); await tick()
+    const copy = f.texts[0]!.cloneNode(true); f.texts[0]!.replaceWith(copy); await tick()
+    f.buttons()[0]!.click(); await tick(); expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
   it('creates one collapsed voice bar per segment without calling Fish on arrival', () => {
     const f = fixture(); runtime = new QQFishVoiceRuntime('voice-text')
     expect(f.buttons()).toHaveLength(2)
@@ -55,14 +100,15 @@ describe('QQ voice replies', () => {
     f.buttons()[0]!.click(); await tick()
     expect(fetcher).toHaveBeenCalledTimes(1)
     expect(JSON.parse(fetcher.mock.calls[0]![1].body).text).toBe('第一段')
-    clips[0]!.emit('loadedmetadata'); expect(f.buttons()[0]!.textContent).toContain('3″')
+    clips[0]!.emit('loadedmetadata'); expect(f.buttons()[0]!.textContent).toContain('3秒')
     clips[0]!.emit('ended'); await tick()
     expect(fetcher).toHaveBeenCalledTimes(2)
     expect(JSON.parse(fetcher.mock.calls[1]![1].body).text).toBe('第二段')
     clips[1]!.emit('ended'); await tick()
     expect(fetcher).toHaveBeenCalledTimes(2)
     expect(other.buttons()[0]!.dataset.state).toBeUndefined()
-    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(2)
+    expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+    f.buttons()[0]!.click(); await tick(); expect(fetcher).toHaveBeenCalledTimes(2)
   })
   it('clicking the active bar stops playback and never advances', async () => {
     const f = fixture(); runtime = new QQFishVoiceRuntime()
@@ -140,7 +186,7 @@ describe('QQ voice replies', () => {
   })
   it('never invents a duration', () => {
     expect(voiceDuration(undefined)).toBe('语音'); expect(voiceDuration('Infinity')).toBe('语音')
-    expect(voiceDuration('0')).toBe('语音'); expect(voiceDuration('3.01')).toBe('4″')
+    expect(voiceDuration('0')).toBe('语音'); expect(voiceDuration('3.01')).toBe('4秒')
   })
 })
 describe('optional Fish slot adapter', () => {
@@ -168,14 +214,15 @@ describe('optional Fish slot adapter', () => {
       entries.set(name,[{ options:{id:'fish-tts'},component:() => null,inject:() => ({autoPlayEnabled:() => true}) }])
       callbacks.get(name)!()
     }
-    expect(registered).toHaveLength(3)
+    expect(callbacks.has('settings.section')).toBe(false)
+    expect(registered).toHaveLength(2)
     for (const {options} of registered) {
       expect(options.priority).toBe(-30)
       const injection = (options.inject as () => Record<string,unknown>)()
       expect((injection.autoPlayEnabled as () => boolean)()).toBe(false)
     }
     entries.clear(); for (const fn of callbacks.values()) fn()
-    expect(removed).toHaveBeenCalledTimes(3)
+    expect(removed).toHaveBeenCalledTimes(2)
     dispose()
   })
 })

@@ -20,7 +20,7 @@ export class VoiceReplyPreference {
   }
 }
 
-// entries() is the host's type-erased public inspection API. Only these three
+// entries() is the host's type-erased public inspection API. Only these two
 // known Fish cells are shadowed; the originals remain registered for unload.
 export interface FishSlots {
   entries(name: string): readonly StoredEntry[]
@@ -32,7 +32,9 @@ export interface FishSlots {
 export function installFishReplies(slots: FishSlots, preference: VoiceReplyPreference) {
   if (typeof slots.entries !== 'function' || typeof slots.subscribe !== 'function') return () => {}
   const disposers: (() => void)[] = []
-  for (const name of ['conversation.chat.assistant-actions', 'conversation.input.left', 'settings.section']) {
+  // The current settings shell enumerates the raw ledger, not shadow winners.
+  // Leave Fish's settings registration alone: a shadow would duplicate its nav item.
+  for (const name of ['conversation.chat.assistant-actions', 'conversation.input.left']) {
     slots.inject(name, () => {
       let original: StoredEntry | undefined
       let remove: (() => void) | undefined
@@ -48,15 +50,20 @@ export function installFishReplies(slots: FishSlots, preference: VoiceReplyPrefe
           const enabled = useSyncExternalStore(preference.subscribe, preference.enabled)
           if (name === 'conversation.chat.assistant-actions') {
             return enabled
-              ? <span hidden data-qq-fish-final={String(props.messageId)} />
+              ? <FinalVoiceMarker {...props} />
               : createElement(Original, { ...props, autoPlayEnabled: () => false })
           }
           if (name === 'conversation.input.left') return <button type="button"
             data-qq-voice-toggle="" aria-label="语音回复" aria-pressed={enabled}
             title={enabled ? '语音回复已开启：点击语音条连续播放' : '语音回复已关闭'}
             onClick={() => preference.set(!enabled)}
-            style={{ border: 0, background: 'none', cursor: 'pointer', color: enabled ? 'var(--dsw-alias-brand-primary)' : 'inherit' }}
-          >{enabled ? '◖ 语音回复' : '◖ 语音回复（关）'}</button>
+            style={{ font: 'inherit', fontSize: 13, border: 0, borderRadius: 8, minHeight: 30,
+              padding: '4px 8px', whiteSpace: 'nowrap', flex: 'none', cursor: 'pointer',
+              background: enabled ? 'color-mix(in srgb, var(--dsw-alias-state-business-primary, #4c78ff) 14%, transparent)' : 'transparent',
+              color: enabled ? 'var(--dsw-alias-state-business-primary, #4c78ff)' : 'var(--dsw-alias-label-secondary, #667085)',
+              boxShadow: enabled ? 'inset 0 0 0 1px currentColor' : 'none',
+              transition: 'background-color 150ms, color 150ms, box-shadow 150ms' }}
+          >语音</button>
           return createElement(Original, props)
         }
         remove = slots.register({ ...candidate.options, name, priority: -30,
@@ -64,8 +71,6 @@ export function installFishReplies(slots: FishSlots, preference: VoiceReplyPrefe
           inject: () => ({ ...inject(),
             // Suppress Fish auto-play even while its saved preference is on.
             autoPlayEnabled: () => false,
-            ...(name === 'settings.section' ? { autoPlay: preference.enabled,
-              setAutoPlay: preference.set, subscribeAutoPlay: preference.subscribe } : {}),
           }),
         }, Component)
       }
@@ -77,4 +82,14 @@ export function installFishReplies(slots: FishSlots, preference: VoiceReplyPrefe
     })
   }
   return () => { for (const dispose of disposers.splice(0)) dispose() }
+}
+
+/** Read the final node's actual timestamp; mounting history is not a new reply. */
+function FinalVoiceMarker(props: Record<string, unknown>) {
+  const useChat = props.useChat as (select: (state: { legacy: { nodes: readonly {
+    kind?: string; messageId?: unknown; time?: number
+  }[] } }) => number) => number
+  const time = useChat(state => state.legacy.nodes.find(node =>
+    node.kind === 'assistant' && node.messageId === props.messageId)?.time ?? 0)
+  return <span hidden data-qq-fish-final={String(props.messageId)} data-qq-fish-time={time} />
 }

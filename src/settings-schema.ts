@@ -34,6 +34,7 @@ export interface Config {
   /** 助手消息打字机揭示动效开关(默认开)。 */
   typing: Volatile<boolean>
   immersiveQQ: Volatile<boolean>
+  fishVoiceWidths: Volatile<{ min: number; max: number }>
   fishVoiceMode: Volatile<'voice-text' | 'transcript'>
 }
 
@@ -53,5 +54,7 @@ export const Config = z.object({
   messageSound: z.boolean().default(false).volatile(),
   typing: z.boolean().default(true).volatile(),
   immersiveQQ: z.boolean().default(true).volatile(),
+  fishVoiceWidths: z.object({ min:z.number().min(140).max(640).required(), max:z.number().min(140).max(640).required() })
+    .default({min:160,max:360}).volatile(),
   fishVoiceMode: z.union(['voice-text', 'transcript']).default('voice-text').volatile(),
 })

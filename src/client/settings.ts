@@ -36,6 +36,7 @@ export interface QQSkinSettings {
   messageSound?: boolean
   typing?: boolean
   immersiveQQ?: boolean
+  fishVoiceWidths?: QQSkinConfig['fishVoiceWidths']
   fishVoiceMode?: QQSkinConfig['fishVoiceMode']
 }
 
@@ -51,6 +52,7 @@ export function settingsToConfig(
 ): QQSkinConfig {
   const s = section ?? {}
   return {
+    fishVoiceWidths: s.fishVoiceWidths ?? fallback?.fishVoiceWidths ?? {min:160,max:360},
     fishVoiceMode: s.fishVoiceMode ?? fallback?.fishVoiceMode ?? 'voice-text',
     avatarImage: s.avatarBindings?.defaultImage ?? s.avatarImage ?? fallback?.avatarImage ?? '',
     conversationAvatars: s.avatarBindings?.conversations ?? fallback?.conversationAvatars ?? {},

@@ -4,6 +4,11 @@ import { resolveQQSkinConfig } from '../src/client/config.ts'
 import { Config } from '../src/settings-schema.ts'
 
 describe('QQ skin settings', () => {
+  it('validates and persists atomic voice width limits', () => {
+    expect(Config({fishVoiceWidths:{min:180,max:400}}).fishVoiceWidths.get()).toEqual({min:180,max:400})
+    expect(() => Config({fishVoiceWidths:{min:139,max:180}})).toThrow()
+    expect(resolveQQSkinConfig({fishVoiceWidths:{min:400,max:180}}).fishVoiceWidths).toEqual({min:160,max:360})
+  })
   it('defaults to voice plus text and persists the optional transcript mode', () => {
     expect(Config({}).fishVoiceMode.get()).toBe('voice-text')
     expect(Config({fishVoiceMode: 'transcript'}).fishVoiceMode.get()).toBe('transcript')
@@ -26,7 +31,7 @@ describe('QQ skin settings', () => {
     expect(settingsToConfig(undefined)).toEqual({
       avatarImage: '', conversationAvatars: {}, chatBackground: '', backgroundFit: 'cover',
       palette: 'classic', bubbleTail: true, assistantAvatar: true,
-      chatMaxWidth: 880, messageSound: false, typing: true, immersiveQQ: true, fishVoiceMode: 'voice-text',
+      chatMaxWidth: 880, messageSound: false, typing: true, immersiveQQ: true, fishVoiceMode: 'voice-text', fishVoiceWidths: {min:160,max:360},
     })
   })
 
@@ -36,7 +41,7 @@ describe('QQ skin settings', () => {
     expect(config).toEqual({
       avatarImage: '', conversationAvatars: {}, chatBackground: '', backgroundFit: 'cover',
       palette: 'vivid', bubbleTail: false, assistantAvatar: true,
-      chatMaxWidth: 720, messageSound: false, typing: true, immersiveQQ: true, fishVoiceMode: 'voice-text',
+      chatMaxWidth: 720, messageSound: false, typing: true, immersiveQQ: true, fishVoiceMode: 'voice-text', fishVoiceWidths: {min:160,max:360},
     })
   })
 
@@ -46,7 +51,7 @@ describe('QQ skin settings', () => {
     expect(config).toEqual({
       avatarImage: '', conversationAvatars: {}, chatBackground: '', backgroundFit: 'cover',
       palette: 'green', bubbleTail: false, assistantAvatar: true,
-      chatMaxWidth: 640, messageSound: false, typing: true, immersiveQQ: true, fishVoiceMode: 'voice-text',
+      chatMaxWidth: 640, messageSound: false, typing: true, immersiveQQ: true, fishVoiceMode: 'voice-text', fishVoiceWidths: {min:160,max:360},
     })
   })
 

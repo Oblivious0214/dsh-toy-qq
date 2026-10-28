@@ -27,7 +27,7 @@ import type { BoundActions } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 // Type-only: pulls locale 服务的 ctx.locale 声明与 LocaleNamespaceMap 合并。
 import type {} from '@deepseek-ai/dsh-client-locale/client'
-import { QQ_SKIN_DEFAULT_CONFIG, resolveQQSkinConfig, type QQSkinConfig } from './config.ts'
+import { QQ_SKIN_DEFAULT_CONFIG, resolveQQSkinConfig, validVoiceWidths, type QQSkinConfig } from './config.ts'
 import { QQ_SKIN_SETTINGS_NS, settingsToConfig, type QQSkinSettings } from './settings.ts'
 import { createQQSkinRowStore } from './settings-store.ts'
 import { zh, en } from './settings-locales.ts'
@@ -71,6 +71,7 @@ function sameConfig(left: QQSkinConfig, right: QQSkinConfig): boolean {
     && left.typing === right.typing
     && left.immersiveQQ === right.immersiveQQ
     && left.fishVoiceMode === right.fishVoiceMode
+    && left.fishVoiceWidths.min === right.fishVoiceWidths.min && left.fishVoiceWidths.max === right.fishVoiceWidths.max
 }
 
 /**
@@ -83,7 +84,7 @@ export function apply(ctx: ClientContext): void {
   const runtime = new QQSkinRuntime(ctx, QQ_SKIN_DEFAULT_CONFIG)
   // 音效运行时:监听新增助手节点,按 messageSound 开关启停。
   const sound = new QQSoundRuntime(ctx, runtime.getConfig())
-  const voice = new QQFishVoiceRuntime(runtime.getConfig().fishVoiceMode)
+  const voice = new QQFishVoiceRuntime(runtime.getConfig().fishVoiceMode, runtime.getConfig().fishVoiceWidths)
   const voicePreference = new VoiceReplyPreference()
   const removeFishReplies = installFishReplies(ctx.slots as unknown as FishSlots, voicePreference)
   ctx.effect(() => removeFishReplies, 'dsh-toy-qq: Fish slot adapter')
@@ -116,7 +117,7 @@ export function apply(ctx: ClientContext): void {
       runtime.update(merged)
       sound.update(merged)
       images.update(runtime.getConfig())
-      voice.update(merged.fishVoiceMode)
+      voice.update(merged.fishVoiceMode, merged.fishVoiceWidths)
     }
     syncRow()
   }
@@ -143,6 +144,7 @@ export function apply(ctx: ClientContext): void {
       setMessageSound: (value) => write('messageSound', value),
       setTyping: (value) => write('typing', value),
       setImmersiveQQ: (value) => write('immersiveQQ', value),
+      setFishVoiceWidths: (value) => { if (validVoiceWidths(value)) write('fishVoiceWidths', value) },
       setFishVoiceMode: (value) => write('fishVoiceMode', value),
       editBackground: () => images.edit('background'),
       editDefaultAvatar: () => images.edit('avatar'),
