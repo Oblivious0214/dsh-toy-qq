@@ -1,3 +1,5 @@
+本地包已恢复原名 `dsh-qq-skin`，当前版本 `0.4.6-enhanced`。增强版标识放在版本后缀中；以下远程发布流程仅供未来使用，当前未授权上传或提交 PR。
+
 # GitHub Releases 发布流程
 
 本增强版通过 GitHub Releases 分发预编译 `.tgz`，目前不发布 npm。
@@ -6,7 +8,7 @@
 1. 在 `release/qq-skin-enhanced` 分支修改版本号，并同步中英文 README 和 `cordis.yml` 的下载链接。
 2. 执行 `pnpm run typecheck`、`pnpm test`。
 3. 执行 `pnpm pack --pack-destination output`。该命令先构建两端代码，再把 `workspace:` 依赖转换成可安装的版本范围；不要用源码 ZIP 代替安装包。
-4. 检查 `.tgz` 中有 `lib/index.js`、`lib/client.js`、`cordis.patch.yml` 和 `package.json`。浏览器模块 id 必须与包名 `qq-skin-enhanced` 一致。
+4. 检查 `.tgz` 中有 `lib/index.js`、`lib/client.js`、`cordis.patch.yml` 和 `package.json`。浏览器模块 id 必须与包名 `dsh-qq-skin` 一致。
 5. 对安装包计算 SHA-256，提交版本修改并推送分支。
 6. 创建对应的 GitHub Release，上传 `.tgz` 与校验文件；附上本版改动、支持的 DSH 版本和安装命令。
 

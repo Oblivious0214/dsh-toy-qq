@@ -13,10 +13,12 @@
 import type { Volatile } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { QQ_SKIN_PALETTES, type QQSkinPalette } from './client/config.ts'
+import type { AvatarBindings } from './client/settings.ts'
 
 /** 设置字段的运行时形状:volatile 字段在 Live 配置里以 ref 形式存在。 */
 export interface Config {
   avatarImage: Volatile<string>
+  avatarBindings: Volatile<AvatarBindings>
   chatBackground: Volatile<string>
   backgroundFit: Volatile<'cover' | 'contain' | 'fill'>
   /** 色板变体。 */
@@ -31,11 +33,17 @@ export interface Config {
   messageSound: Volatile<boolean>
   /** 助手消息打字机揭示动效开关(默认开)。 */
   typing: Volatile<boolean>
+  immersiveQQ: Volatile<boolean>
+  fishVoiceMode: Volatile<'voice-text' | 'transcript'>
 }
 
 /** 设置分节 schema:宿主校验条目配置、设置面板渲染表单共用。 */
 export const Config = z.object({
   avatarImage: z.string().default('').volatile(),
+  avatarBindings: z.object({
+    defaultImage: z.string(),
+    conversations: z.dict(z.string()).default({}),
+  }).default({ conversations: {} }).volatile(),
   chatBackground: z.string().default('').volatile(),
   backgroundFit: z.union(['cover', 'contain', 'fill']).default('cover').volatile(),
   palette: z.union([...QQ_SKIN_PALETTES]).default('classic').volatile(),
@@ -44,4 +52,6 @@ export const Config = z.object({
   chatMaxWidth: z.number().min(480).max(1600).default(880).volatile(),
   messageSound: z.boolean().default(false).volatile(),
   typing: z.boolean().default(true).volatile(),
+  immersiveQQ: z.boolean().default(true).volatile(),
+  fishVoiceMode: z.union(['voice-text', 'transcript']).default('voice-text').volatile(),
 })

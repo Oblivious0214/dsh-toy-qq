@@ -33,7 +33,7 @@ export class QQSkinRuntime {
     this.ctx = ctx
     this.config = resolveQQSkinConfig(config)
     // 插件 dispose 时完整卸载两层;effect 清理即运行时 dispose。
-    ctx.effect(() => () => this.dispose(), 'dsh-qq-skin: runtime dispose')
+    ctx.effect(() => () => this.dispose(), 'dsh-toy-qq: runtime dispose')
     this.applyLayers(this.config)
   }
 

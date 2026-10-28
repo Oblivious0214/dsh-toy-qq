@@ -1,5 +1,5 @@
 /**
- * QQ 皮肤设置行(注册进设置 General 区的 item 槽):色板五选一、气泡
+ * QQ界面独立设置页(注册进 settings.section 槽):色板五选一、气泡
  * 尾巴/企鹅头像开关、会话宽度输入。
  *
  * 视觉语言与宿主设置行对齐:
@@ -16,16 +16,20 @@
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { PropsLocale, PropsRuntime, PropsStore } from '@deepseek-ai/dsh-client-ui-slots'
-// Type-only: pulls ui-settings 的 SlotMap 声明合并(声明 settings.general.item
+// Type-only: pulls ui-settings 的 SlotMap 声明合并(声明 settings.section
 // 槽),与 ui-theme 的 AppearanceRow 同款——交叉插件协作始终走类型引用,
 // 客户端 bundle 纯净性门禁不允许 value import。
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { QQ_SKIN_PALETTES, type QQSkinPalette, type QQSkinConfig } from './config.ts'
 import type { createQQSkinRowStore } from './settings-store.ts'
 import type { QQSkinSettingsKey } from './settings-locales.ts'
+import { QQ_AVATAR_DATA_URI } from './qq-avatar.ts'
 
 /** 注入的业务面:各字段的持久化写入口(经 SettingsScope.set 排队)。 */
 export interface QQSkinRowInjected {
+  setFishVoiceMode: (value: QQSkinConfig['fishVoiceMode']) => void
+  setImmersiveQQ: (value: boolean) => void
+  editDefaultAvatar: () => void
   editBackground: () => void
   setBackgroundFit: (value: QQSkinConfig['backgroundFit']) => void
   /** 切换色板变体。 */
@@ -44,9 +48,9 @@ export interface QQSkinRowInjected {
 
 /** 完整组件 props:运行时份额 + store 份额 + locale 座 + 注入面。 */
 export type QQSkinRowComponentProps =
-  PropsRuntime<'settings.general.item'>
+  PropsRuntime<'settings.section'>
   & PropsStore<ReturnType<typeof createQQSkinRowStore>>
-  & PropsLocale<'dsh-qq-skin.settings'>
+  & PropsLocale<'dsh-toy-qq.settings'>
   & QQSkinRowInjected
 
 /** 色板选项文案键。 */
@@ -69,12 +73,13 @@ const PALETTE_PREVIEW: Record<QQSkinPalette, string> = {
 
 /** 行容器/标题:与宿主 AppearanceRow/LanguageRow 的 group+title 一致。 */
 const groupStyle = {
-  display: 'flex', flexDirection: 'column', gap: '8px',
-  padding: '16px 0', borderBottom: '1px solid var(--dsw-alias-border-l2)',
+  display: 'flex', flexDirection: 'column', gap: '16px',
+  width: '100%', boxSizing: 'border-box',
 } satisfies CSSProperties
 
 const titleStyle = {
-  fontSize: '14px', fontWeight: 400, lineHeight: '22px',
+  margin: 0,
+  fontSize: '19px', fontWeight: 600, lineHeight: '28px',
   color: 'var(--dsw-alias-label-primary)',
 } satisfies CSSProperties
 
@@ -197,13 +202,13 @@ function ToggleRow({ label, checked, onChange }: {
 }
 
 /**
- * 渲染 QQ 皮肤设置行。
+ * 渲染 QQ界面独立设置页。
  * @param props - 组合后的槽位 props。
  * @returns 行元素树。
  */
 export function QQSkinSettingsRow({
   t, useStore, setPalette, setBubbleTail, setAssistantAvatar, setChatMaxWidth,
-  setMessageSound, setTyping, editBackground, setBackgroundFit,
+  setMessageSound, setTyping, editBackground, setBackgroundFit, editDefaultAvatar, setImmersiveQQ, setFishVoiceMode,
 }: QQSkinRowComponentProps) {
   const config = useStore(s => s.config)
   const [widthDraft, setWidthDraft] = useState(String(config.chatMaxWidth))
@@ -219,8 +224,25 @@ export function QQSkinSettingsRow({
   }
 
   return (
-    <div style={groupStyle}>
-      <div style={titleStyle}>{t('row.title')}</div>
+    <div style={groupStyle} data-qq-interface-settings="">
+      <h2 style={titleStyle}>{t('row.title')}</h2>
+      <ToggleRow label={t('row.immersiveQQ')} checked={config.immersiveQQ} onChange={setImmersiveQQ} />
+      <div style={fieldRowStyle}>
+        <label htmlFor="qq-fish-voice-mode" style={fieldLabelStyle}>{t('row.fishVoiceMode')}</label>
+        <select id="qq-fish-voice-mode" value={config.fishVoiceMode}
+          onChange={event => setFishVoiceMode(event.currentTarget.value as QQSkinConfig['fishVoiceMode'])}>
+          <option value="voice-text">{t('voice.voiceText')}</option>
+          <option value="transcript">{t('voice.transcript')}</option>
+        </select>
+      </div>
+      <div style={fieldRowStyle}>
+        <span style={fieldLabelStyle}>{t('row.defaultAvatar')}</span>
+        <span style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+          <img src={config.avatarImage || QQ_AVATAR_DATA_URI} alt={t('row.defaultAvatar')}
+            width={33} height={33} style={{borderRadius: '50%', objectFit: 'cover'}} />
+          <button type="button" onClick={editDefaultAvatar}>{t('row.chooseDefaultAvatar')}</button>
+        </span>
+      </div>
       <div style={fieldRowStyle}>
         <span style={fieldLabelStyle}>{t('row.background')}</span>
         <button type="button" onClick={editBackground}>{t('row.chooseBackground')}</button>

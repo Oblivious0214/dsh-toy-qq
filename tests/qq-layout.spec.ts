@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
+import { Window } from 'happy-dom'
 import {
-  buildQQLayoutCss, installQQLayout, QQ_LAYOUT_CSS, QQ_LAYOUT_PLUGIN,
+  buildQQLayoutCss, installQQLayout, createQQLayoutTag, QQ_LAYOUT_CSS, QQ_LAYOUT_PLUGIN, QQ_IMMERSIVE_CSS,
 } from '../src/client/qq-layout.ts'
 import { QQ_SKIN_DEFAULT_CONFIG } from '../src/client/config.ts'
 
@@ -74,6 +75,45 @@ describe('QQ NT layout layer', () => {
 })
 
 describe('QQ NT layout config branches', () => {
+  it('enables immersive mode by default and allows opting out', () => {
+    expect(buildQQLayoutCss()).toContain(QQ_IMMERSIVE_CSS)
+    expect(buildQQLayoutCss({...QQ_SKIN_DEFAULT_CONFIG, immersiveQQ: false})).not.toContain(QQ_IMMERSIVE_CSS)
+  })
+
+  it('hides completion, its divider, assistant actions and usage while retaining clocks/content, then restores them', async () => {
+    const browser = new Window()
+    vi.stubGlobal('document', browser.document)
+    browser.document.body.innerHTML = `<main data-chat-flow>
+      <div data-chat-flow-kind="user"><div data-clock="start"><span class="native_timeStart" id="user-time">11:37</span><button id="user-copy">Copy</button></div></div>
+      <div data-chat-flow-kind="turn-process" id="completion"><button data-turn-process="1" style="border-bottom:1px solid" id="divider">Completed in 1s</button></div>
+      <div data-chat-flow-kind="command" id="role-notice"><div data-state="ok">role · Switched this session</div></div>
+      <div data-chat-flow-kind="command" id="running-command"><div data-state="running">Running</div></div>
+      <div data-chat-flow-kind="command" id="failed-command"><div data-state="error">Failed</div></div>
+      <div data-chat-flow-kind="assistant-step" id="reply">Reply<hr id="markdown-rule"></div>
+      <div data-turn-tail="1"><div data-clock="end">
+        <button id="copy">Copy</button><div data-slot="assistant-actions" id="feedback"><button>Like</button></div><button id="branch">Branch</button>
+        <span class="native_endInfo"><button id="usage">16.7K tokens</button><span class="native_timeEnd" id="assistant-time">11:37</span></span>
+      </div></div>
+      <div data-running-status id="running">Working</div>
+      </main><button id="composer-action">Send</button>`
+    const hidden = (id: string) => {
+      let el = browser.document.getElementById(id)
+      while (el) {
+        if (browser.getComputedStyle(el).display === 'none') return true
+        el = el.parentElement
+      }
+      return false
+    }
+    const before = browser.document.body.innerHTML
+    const remove = createQQLayoutTag({...QQ_SKIN_DEFAULT_CONFIG, immersiveQQ: true})
+    try {
+      for (const id of ['completion', 'divider', 'copy', 'feedback', 'branch', 'usage', 'role-notice']) expect(hidden(id), id).toBe(true)
+      for (const id of ['user-time', 'user-copy', 'assistant-time', 'reply', 'markdown-rule', 'running', 'composer-action', 'running-command', 'failed-command']) expect(hidden(id), id).toBe(false)
+      expect(browser.document.body.innerHTML).toBe(before)
+      remove()
+      for (const id of ['completion', 'divider', 'copy', 'feedback', 'branch', 'usage', 'role-notice']) expect(hidden(id), id).toBe(false)
+    } finally { remove(); await browser.happyDOM.abort() }
+  })
   it('bubble tail rule appears by default and can be disabled', () => {
     const tailRule = `[class$='_bubble']::after`
     expect(QQ_LAYOUT_CSS).toContain(tailRule)

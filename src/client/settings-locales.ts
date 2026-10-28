@@ -4,10 +4,16 @@
  */
 
 /** 设置行命名空间(locale 字典与槽位 locale 座共用)。 */
-export const QQ_SKIN_ROW_NS = 'dsh-qq-skin.settings'
+export const QQ_SKIN_ROW_NS = 'dsh-toy-qq.settings'
 
 /** 设置行文案键全集。 */
 export type QQSkinSettingsKey =
+  | 'row.fishVoiceMode'
+  | 'voice.voiceText'
+  | 'voice.transcript'
+  | 'row.immersiveQQ'
+  | 'row.defaultAvatar'
+  | 'row.chooseDefaultAvatar'
   | 'row.background'
   | 'row.chooseBackground'
   | 'row.backgroundFit'
@@ -30,19 +36,25 @@ export type QQSkinSettingsKey =
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** QQ 皮肤设置行的文案。 */
-    'dsh-qq-skin.settings': QQSkinSettingsKey
+    'dsh-toy-qq.settings': QQSkinSettingsKey
   }
 }
 
 /** 中文文案。 */
 export const zh: Record<QQSkinSettingsKey, string> = {
+  'row.fishVoiceMode': '语音显示方式',
+  'voice.voiceText': '点击播放后显示转文字（默认）',
+  'voice.transcript': '仅语音条（不显示文字）',
+  'row.immersiveQQ': '沉浸式 QQ',
+  'row.defaultAvatar': '默认头像',
+  'row.chooseDefaultAvatar': '更换默认头像',
   'row.background': '对话背景',
   'row.chooseBackground': '选择、裁剪或恢复默认',
   'row.backgroundFit': '背景适应方式',
   'fit.cover': '填充（保持比例）',
   'fit.contain': '适应（显示完整图片）',
   'fit.fill': '拉伸',
-  'row.title': 'QQ 皮肤',
+  'row.title': 'QQ聊天界面',
   'row.palette': '色板',
   'palette.classic': '经典蓝',
   'palette.vivid': '炫彩紫',
@@ -58,13 +70,19 @@ export const zh: Record<QQSkinSettingsKey, string> = {
 
 /** 英文文案。 */
 export const en: Record<QQSkinSettingsKey, string> = {
+  'row.fishVoiceMode': 'Voice display',
+  'voice.voiceText': 'Show transcript after playback starts (default)',
+  'voice.transcript': 'Voice bars only (no transcript)',
+  'row.immersiveQQ': 'Immersive QQ',
+  'row.defaultAvatar': 'Default avatar',
+  'row.chooseDefaultAvatar': 'Change default avatar',
   'row.background': 'Chat background',
   'row.chooseBackground': 'Choose, crop or restore default',
   'row.backgroundFit': 'Background fit',
   'fit.cover': 'Fill (keep aspect ratio)',
   'fit.contain': 'Fit (show entire image)',
   'fit.fill': 'Stretch',
-  'row.title': 'QQ Skin',
+  'row.title': 'QQ chat interface',
   'row.palette': 'Palette',
   'palette.classic': 'Classic Blue',
   'palette.vivid': 'Vivid Purple',

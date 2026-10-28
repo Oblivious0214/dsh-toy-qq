@@ -1,5 +1,5 @@
-# qq-skin-enhanced — bundle layer contributed when a profile lists this bundle.
+# dsh-toy-qq — bundle layer contributed when a profile lists this bundle.
 # A patch replaces the targeted row's whole config, so keep this row minimal.
 - insert:
   - id: qq-skin
-    name: qq-skin-enhanced
+    name: dsh-toy-qq

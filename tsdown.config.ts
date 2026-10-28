@@ -1,7 +1,11 @@
 import { defineConfig } from 'tsdown'
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
 
 /** Plugin id used by the client closure-factory loader registration. */
-const PLUGIN_ID = 'qq-skin-enhanced'
+const PLUGIN_ID = 'dsh-toy-qq'
 
 /**
  * Two-face build mirroring the harness client preset (`clientBundle`):
@@ -27,6 +31,18 @@ export default [
   }),
   defineConfig({
     name: `${PLUGIN_ID}/client`,
+    plugins: [{
+      name: 'inline-cropper-styles',
+      resolveId(source) {
+        if (source === 'cropperjs/dist/cropper.css?inline') return '\0qq-cropper-css'
+      },
+      load(id) {
+        if (id === '\0qq-cropper-css') {
+          return `export default ${JSON.stringify(readFileSync(require.resolve('cropperjs/dist/cropper.css'), 'utf8'))}`
+        }
+      },
+    }],
+    deps: { alwaysBundle: [/^cropperjs(?:\/|$)/] },
     entry: { client: 'lib/types/client/index.js' },
     outDir: 'lib',
     format: ['cjs'],

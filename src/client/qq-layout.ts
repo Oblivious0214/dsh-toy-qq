@@ -20,40 +20,41 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import { QQ_AVATAR_DATA_URI } from './qq-avatar.ts'
+import { QQ_FISH_VOICE_CSS } from './fish-voice.ts'
 import { QQ_SKIN_DEFAULT_CONFIG, resolveQQSkinConfig, type QQSkinConfig } from './config.ts'
 
 /** 注入的 <style> 标签归属标识(便于排查与测试断言)。 */
-export const QQ_LAYOUT_PLUGIN = 'qq-skin-enhanced/layout'
+export const QQ_LAYOUT_PLUGIN = 'dsh-toy-qq/layout'
 
 /** 企鹅头像圆标(默认开启时注入;关闭后无头像,也不占左侧空间)。 */
 function avatarRule(image: string): string {
   return `
 [data-chat-flow-kind='assistant-step'] {
   position: relative;
-  margin-left: 36px;
+  margin-left: 47px;
 }
 [data-chat-flow-kind='assistant-step']::before {
   content: '';
   position: absolute;
-  top: 13px;
-  left: -36px;
-  width: 22px;
-  height: 22px;
+  top: 8px;
+  left: -47px;
+  width: 33px;
+  height: 33px;
   border-radius: 50%;
-  background-color: var(--dsw-alias-bg-layer-1);
+  background-color: ${image ? 'transparent' : 'var(--dsw-alias-bg-layer-1)'};
   background-image: url("${image || QQ_AVATAR_DATA_URI}");
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  box-shadow: 0 1px 3px rgba(18, 183, 245, 0.35);
+  box-shadow: ${image ? 'none' : '0 1px 3px rgba(18, 183, 245, 0.35)'};
 }
 [data-chat-flow-kind='assistant-step']:has(> [data-qq-avatar])::before { display: none; }
 [data-qq-avatar] {
-  position: absolute; top: 13px; left: -36px;
-  width: 22px; height: 22px; padding: 0;
+  position: absolute; top: 8px; left: -47px;
+  width: 33px; height: 33px; padding: 0;
   border: 0; border-radius: 50%; cursor: pointer;
-  background: var(--dsw-alias-bg-layer-1) url("${image || QQ_AVATAR_DATA_URI}") center / cover no-repeat;
-  box-shadow: 0 1px 3px rgba(18, 183, 245, 0.35);
+  background: ${image ? 'transparent' : 'var(--dsw-alias-bg-layer-1)'} url("${image || QQ_AVATAR_DATA_URI}") center / cover no-repeat;
+  box-shadow: ${image ? 'none' : '0 1px 3px rgba(18, 183, 245, 0.35)'};
 }
 [data-qq-avatar]:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 3px; }
 `
@@ -89,14 +90,32 @@ function typingRule(): string {
 `
 }
 
+/** Hide completed-turn chrome while retaining message clocks and content. */
+export const QQ_IMMERSIVE_CSS = `
+[data-chat-flow] [data-chat-flow-kind='turn-process'],
+[data-chat-flow] [data-turn-process],
+[data-chat-flow] [data-chat-flow-kind='command']:has([data-state='ok']) {
+  display: none !important;
+}
+[data-chat-flow] [data-turn-tail] [data-clock='end'] > :not([class$='_endInfo']),
+[data-chat-flow] [data-turn-tail] [data-clock='end'] > [class$='_endInfo'] > :not([class$='_timeEnd']) {
+  display: none !important;
+}
+[data-chat-flow] [data-turn-tail] [data-clock='end'] > [class$='_endInfo'] {
+  margin-left: 0;
+}
+`
+
 /**
  * 按配置生成 QQ 布局层 CSS。颜色一律走 `--dsw-*` token,几何/开关随
  * 配置变化;所有规则随 <style> 标签移除而还原。
  * @param config - 用户配置(可缺省,回落默认)。
  */
 export function buildQQLayoutCss(config: QQSkinConfig = QQ_SKIN_DEFAULT_CONFIG): string {
-  const { bubbleTail, assistantAvatar, chatMaxWidth, typing, avatarImage, chatBackground, backgroundFit } = resolveQQSkinConfig(config)
+  const { bubbleTail, assistantAvatar, chatMaxWidth, typing, avatarImage, chatBackground, backgroundFit, immersiveQQ } = resolveQQSkinConfig(config)
   return `
+${immersiveQQ ? QQ_IMMERSIVE_CSS : ''}
+${QQ_FISH_VOICE_CSS}
 ${chatBackground ? `[data-conversation-scroll] {
   background-image: url("${chatBackground}");
   background-size: ${backgroundFit === 'fill' ? '100% 100%' : backgroundFit};
@@ -120,8 +139,8 @@ ${chatBackground ? `[data-conversation-scroll] {
    display: contents 的锚点 div 包在内容外)——直接子选择器
    > [class$='_root'] 因此从不命中,卡片 padding 从未生效。改为
    > [data-slot] > [class$='_root'] 精确命中 AssistantMarkdown 的
-   root(避免误伤嵌套的 ReasoningRow 等同名 root)。头像 top 按
-   卡片 padding-top 12px + Think 行高 24px 垂直居中:12 + 12 - 11 = 13。 */
+   root(避免误伤嵌套的 ReasoningRow 等同名 root)。33px 头像按首行
+   垂直居中，向左预留 47px，保持与气泡 14px 的间距。 */
 ${assistantAvatar ? avatarRule(avatarImage) : ''}
 [data-chat-flow-kind='assistant-step'] > [data-slot] > [class$='_root'] {
   border-radius: 16px 16px 16px 6px;

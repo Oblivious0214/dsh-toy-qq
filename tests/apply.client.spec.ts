@@ -61,7 +61,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('dsh-qq-skin client apply', () => {
+describe('dsh-toy-qq client apply', () => {
   it('declares theme plus settings-collaboration services', () => {
     expect(inject).toEqual(['theme', 'slots', 'locale', 'remote', 'configForms'])
   })
@@ -153,6 +153,25 @@ describe('dsh-qq-skin client apply', () => {
     expect(nodes.at(-1)!.textContent).not.toContain(saved)
   })
 
+  it('adopts changed conversation bindings even when the default avatar is unchanged', () => {
+    const nodes = stubDocument()
+    const {ctx, host} = makeCtx(undefined, QQ_SKIN_DEFAULT_CONFIG)
+    apply(ctx as never)
+    const previousCount = nodes.length
+    host.push({avatarBindings: {conversations: {a: 'data:image/png;base64,YWJjZA=='}}})
+    expect(nodes.length).toBe(previousCount + 1)
+  })
+
+  it('hot-applies and removes immersive rules without restarting', () => {
+    const nodes = stubDocument()
+    const {ctx, host} = makeCtx(undefined, QQ_SKIN_DEFAULT_CONFIG)
+    apply(ctx as never)
+    host.push({immersiveQQ: true})
+    expect(nodes.at(-1)!.textContent).toContain("[data-chat-flow] [data-turn-process]")
+    host.push({immersiveQQ: false}, 2)
+    expect(nodes.at(-1)!.textContent).not.toContain("[data-chat-flow] [data-turn-process]")
+  })
+
   it('writes settings fields back through the config form', () => {
     const host = stubConfigForm()
     let injected: Record<string, (value: never) => void> | undefined
@@ -172,8 +191,10 @@ describe('dsh-qq-skin client apply', () => {
     injected!.setPalette!('green' as never)
     injected!.setChatMaxWidth!(640 as never)
     injected!.setBackgroundFit!('contain' as never)
+    injected!.setImmersiveQQ!(true as never)
+    injected!.setFishVoiceMode!('transcript' as never)
 
-    expect(host.written).toEqual([['palette', 'green'], ['chatMaxWidth', 640], ['backgroundFit', 'contain']])
+    expect(host.written).toEqual([['palette', 'green'], ['chatMaxWidth', 640], ['backgroundFit', 'contain'], ['immersiveQQ', true], ['fishVoiceMode', 'transcript']])
   })
 
   it('removes the layer through the effect cleanup on dispose', async () => {
@@ -216,22 +237,28 @@ describe('dsh-qq-skin client apply', () => {
     expect(nodes[0].dataset.plugin).toBe(QQ_LAYOUT_PLUGIN)
   })
 
-  it('registers the QQ skin settings row entry', () => {
+  it('registers only a dedicated QQ Interface section with a localized navigation label', () => {
     const register = vi.fn(() => () => {})
+    const injectSlot = vi.fn((_: string, thunk: () => () => void) => { thunk() })
+    let label = 'QQ界面'
     const ctx = new Context()
     ctx.provide('theme', { overrideTokens: vi.fn(() => vi.fn()) } as unknown as ThemeRuntime)
     ctx.provide('configForms', { get: () => stubConfigForm().form } as never)
     ctx.provide('slots', {
-      inject: (_: string, thunk: () => () => void) => { thunk() },
+      inject: injectSlot,
       register,
     } as never)
-    ctx.provide('locale', { register: () => () => {} } as never)
+    ctx.provide('locale', { register: () => () => {}, bind: () => () => label } as never)
 
     apply(ctx as never)
 
     expect(register).toHaveBeenCalledTimes(1)
     const options = register.mock.calls[0]![0]
-    expect(options.id).toBe('qq-skin')
-    expect(options.name).toBe('settings.general.item')
+    expect(options.id).toBe('qq-interface')
+    expect(options.name).toBe('settings.section')
+    expect(injectSlot.mock.calls.map(call => call[0])).toEqual(['settings.section'])
+    expect(options.label()).toBe('QQ界面')
+    label = 'QQ Interface'
+    expect(options.label()).toBe('QQ Interface')
   })
 })

@@ -13,6 +13,9 @@ importers:
 
   .:
     dependencies:
+      cropperjs:
+        specifier: 1.6.2
+        version: 1.6.2
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -17995,6 +17998,9 @@ packages:
   crc@3.8.0:
     resolution: {integrity: sha512-iX3mfgcTMIq3ZKLIsVFAbv7+Mc10kxabAGQb8HvjA1o3T1PIYprbakQ65d3I+2HGHt6nSKkM9PYjgoJO2KcFBQ==}
 
+  cropperjs@1.6.2:
+    resolution: {integrity: sha512-nhymn9GdnV3CqiEHJVai54TULFAE3VshJTXSqSJKa8yXAKyBKDWdhHarnlIPrshJ0WMFTGuFvG02YjLXfPiuOA==}
+
   cross-dirname@0.1.0:
     resolution: {integrity: sha512-+R08/oI0nl3vfPcqftZRpytksBXDzOUveBq/NBVx0sUp1axwzPQrKinNx5yd5sxPu8j1wIy8AfnVQ+5eFdha6Q==}
 
@@ -24586,6 +24592,8 @@ snapshots:
   crc@3.8.0:
     dependencies:
       buffer: 5.7.1
+
+  cropperjs@1.6.2: {}
 
   cross-dirname@0.1.0:
     optional: true

@@ -17,9 +17,16 @@ import { type QQSkinConfig, type QQSkinPalette } from './config.ts'
 /** 设置命名空间 == profile 条目 id(cordis.patch.yml 的 `id`)。 */
 export const QQ_SKIN_SETTINGS_NS = 'qq-skin'
 
+/** Written in one operation so setting a default and binding a conversation is atomic. */
+export interface AvatarBindings {
+  defaultImage?: string
+  conversations: Record<string, string>
+}
+
 /** 设置分节里的持久化字段:形状与 QQSkinConfig 一致,全部可缺省。 */
 export interface QQSkinSettings {
   avatarImage?: string
+  avatarBindings?: AvatarBindings
   chatBackground?: string
   backgroundFit?: QQSkinConfig['backgroundFit']
   palette?: QQSkinPalette
@@ -28,6 +35,8 @@ export interface QQSkinSettings {
   chatMaxWidth?: number
   messageSound?: boolean
   typing?: boolean
+  immersiveQQ?: boolean
+  fishVoiceMode?: QQSkinConfig['fishVoiceMode']
 }
 
 /**
@@ -42,7 +51,9 @@ export function settingsToConfig(
 ): QQSkinConfig {
   const s = section ?? {}
   return {
-    avatarImage: s.avatarImage ?? fallback?.avatarImage ?? '',
+    fishVoiceMode: s.fishVoiceMode ?? fallback?.fishVoiceMode ?? 'voice-text',
+    avatarImage: s.avatarBindings?.defaultImage ?? s.avatarImage ?? fallback?.avatarImage ?? '',
+    conversationAvatars: s.avatarBindings?.conversations ?? fallback?.conversationAvatars ?? {},
     chatBackground: s.chatBackground ?? fallback?.chatBackground ?? '',
     backgroundFit: s.backgroundFit ?? fallback?.backgroundFit ?? 'cover',
     palette: s.palette ?? fallback?.palette ?? 'classic',
@@ -51,5 +62,6 @@ export function settingsToConfig(
     chatMaxWidth: s.chatMaxWidth ?? fallback?.chatMaxWidth ?? 880,
     messageSound: s.messageSound ?? fallback?.messageSound ?? false,
     typing: s.typing ?? fallback?.typing ?? true,
+    immersiveQQ: s.immersiveQQ ?? fallback?.immersiveQQ ?? true,
   }
 }

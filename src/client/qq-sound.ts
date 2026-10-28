@@ -46,7 +46,7 @@ export class QQSoundRuntime {
    */
   constructor(ctx: Context, config: QQSkinConfig) {
     this.config = config
-    ctx.effect(() => () => this.dispose(), 'dsh-qq-skin: sound dispose')
+    ctx.effect(() => () => this.dispose(), 'dsh-toy-qq: sound dispose')
     this.applyObserver(this.config)
   }
 

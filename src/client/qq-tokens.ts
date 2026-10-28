@@ -3,7 +3,7 @@
  *
  * 每个条目覆盖一个 `--dsw-*` 语义 token:`light` 在浅色基座上生效,
  * `dark` 在深色基座上生效(`body[data-ds-dark-theme]`)。皮肤通过
- * `ctx.theme.overrideTokens('qq-skin-enhanced', …)` 叠加,移除即还原;
+ * `ctx.theme.overrideTokens('dsh-toy-qq', …)` 叠加,移除即还原;
  * 不在此清单中的 token 保持产品默认。
  *
  * classic/vivid/clean/green 共享同一套中性蓝灰骨架(文字、边框、
@@ -26,7 +26,7 @@ import type { ThemeTokenOverrides } from '@deepseek-ai/dsh-client-ui-theme/clien
 import type { QQSkinPalette } from './config.ts'
 
 /** overrideTokens 层来源标识(即本插件包名)。 */
-export const QQ_SKIN_SOURCE = 'qq-skin-enhanced'
+export const QQ_SKIN_SOURCE = 'dsh-toy-qq'
 
 /**
  * classic 经典蓝色板的全量覆盖集(也是向后兼容导出的基准全集;

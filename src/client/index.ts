@@ -13,7 +13,7 @@
  * 条目不再收到 config 参数,故出厂默认值只作首帧兜底:配置未到达
  * (status 仍为 loading)时先按默认值上皮肤,到达后热更新切到真实色板。
  *
- * 设置面板:皮肤在设置 General 区注册「QQ 皮肤」设置行(settings-store
+ * 设置面板:皮肤注册独立的「QQ界面」设置页(settings-store
  * + settings-row + settings-locales),色板/尾巴/头像/宽度可视化切换;
  * 变更经 ConfigForm 持久化并触发热更新。
  */
@@ -27,7 +27,7 @@ import type { BoundActions } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 // Type-only: pulls locale 服务的 ctx.locale 声明与 LocaleNamespaceMap 合并。
 import type {} from '@deepseek-ai/dsh-client-locale/client'
-import { QQ_SKIN_DEFAULT_CONFIG, type QQSkinConfig } from './config.ts'
+import { QQ_SKIN_DEFAULT_CONFIG, resolveQQSkinConfig, type QQSkinConfig } from './config.ts'
 import { QQ_SKIN_SETTINGS_NS, settingsToConfig, type QQSkinSettings } from './settings.ts'
 import { createQQSkinRowStore } from './settings-store.ts'
 import { zh, en } from './settings-locales.ts'
@@ -36,6 +36,9 @@ import { QQSkinSettingsRow } from './settings-row.tsx'
 import { QQSkinRuntime } from './runtime.ts'
 import { QQSoundRuntime } from './qq-sound.ts'
 import { QQImageRuntime } from './image-runtime.ts'
+import { nextAvatarBindings } from './avatar-settings.ts'
+import { QQFishVoiceRuntime } from './fish-voice.ts'
+import { installFishReplies, VoiceReplyPreference, type FishSlots } from './fish-replies.tsx'
 
 /**
  * 依赖的服务:主题运行时 + 槽位 + 文案 + 设置表单。
@@ -57,6 +60,8 @@ export { QQ_SKIN_SETTINGS_NS }
 function sameConfig(left: QQSkinConfig, right: QQSkinConfig): boolean {
   return left.palette === right.palette
     && left.avatarImage === right.avatarImage
+    && Object.keys(left.conversationAvatars).length === Object.keys(right.conversationAvatars).length
+    && Object.entries(left.conversationAvatars).every(([id, image]) => right.conversationAvatars[id] === image)
     && left.chatBackground === right.chatBackground
     && left.backgroundFit === right.backgroundFit
     && left.bubbleTail === right.bubbleTail
@@ -64,11 +69,13 @@ function sameConfig(left: QQSkinConfig, right: QQSkinConfig): boolean {
     && left.chatMaxWidth === right.chatMaxWidth
     && left.messageSound === right.messageSound
     && left.typing === right.typing
+    && left.immersiveQQ === right.immersiveQQ
+    && left.fishVoiceMode === right.fishVoiceMode
 }
 
 /**
  * 挂载 QQ NT 皮肤(布局层 + token 层,经 QQSkinRuntime 统一生命周期),
- * 并注册「QQ 皮肤」设置行 + 设置变更热更新。
+ * 并注册「QQ界面」独立设置页 + 设置变更热更新。
  * @param ctx - 客户端插件上下文。
  */
 export function apply(ctx: ClientContext): void {
@@ -76,12 +83,22 @@ export function apply(ctx: ClientContext): void {
   const runtime = new QQSkinRuntime(ctx, QQ_SKIN_DEFAULT_CONFIG)
   // 音效运行时:监听新增助手节点,按 messageSound 开关启停。
   const sound = new QQSoundRuntime(ctx, runtime.getConfig())
+  const voice = new QQFishVoiceRuntime(runtime.getConfig().fishVoiceMode)
+  const voicePreference = new VoiceReplyPreference()
+  const removeFishReplies = installFishReplies(ctx.slots as unknown as FishSlots, voicePreference)
+  ctx.effect(() => removeFishReplies, 'dsh-toy-qq: Fish slot adapter')
+  ctx.effect(() => () => voice.dispose(), 'dsh-toy-qq: Fish voice bubbles')
 
   // 设置表单:宿主条目配置的读写面(值 = 默认值 → profile 配置 → 用户改写)。
   const host = ctx.configForms.get<QQSkinSettings>(QQ_SKIN_SETTINGS_NS)
-  const images = new QQImageRuntime(runtime.getConfig(), (kind, image) =>
-    host.set(kind === 'avatar' ? 'avatarImage' : 'chatBackground', image))
-  ctx.effect(() => () => images.dispose(), 'dsh-qq-skin: image controls')
+  const images = new QQImageRuntime(runtime.getConfig(), (kind, image, target) => {
+    if (kind === 'background') return host.set('chatBackground', image)
+    const latest = host.getSnapshot().value
+    if (latest === undefined) return Promise.resolve(false)
+    const config = resolveQQSkinConfig(settingsToConfig(latest))
+    return host.set('avatarBindings', nextAvatarBindings(config, image, target.sessionId, target.makeDefault))
+  })
+  ctx.effect(() => () => images.dispose(), 'dsh-toy-qq: image controls')
 
   // 设置行:store 镜像当前配置,订阅把配置写回 store 并热更新两层。
   const store = createQQSkinRowStore()
@@ -93,23 +110,24 @@ export function apply(ctx: ClientContext): void {
   const adopt = (): void => {
     const section = host.getSnapshot().value
     if (section === undefined) return
-    const merged = settingsToConfig(section)
+    const merged = resolveQQSkinConfig(settingsToConfig(section))
     // 快照在激活时已就绪(与首帧同值)则只同步 store,不重挂两层。
     if (!sameConfig(merged, runtime.getConfig())) {
       runtime.update(merged)
       sound.update(merged)
       images.update(runtime.getConfig())
+      voice.update(merged.fishVoiceMode)
     }
     syncRow()
   }
   ctx.effect(() => host.subscribe(() => {
     // 首次快照可能在订阅前就已到达,主动 adopt 一次以免停在出厂默认值。
     adopt()
-  }), 'dsh-qq-skin: settings adoption')
+  }), 'dsh-toy-qq: settings adoption')
   adopt()
 
   // 文案:注册设置行字典。
-  ctx.effect(() => ctx.locale.register('dsh-qq-skin.settings', { zh, en }), 'dsh-qq-skin: settings row dictionaries')
+  ctx.effect(() => ctx.locale.register('dsh-toy-qq.settings', { zh, en }), 'dsh-toy-qq: settings row dictionaries')
 
   const injected = (actions: BoundActions<typeof store>): QQSkinRowInjected => {
     bound = actions
@@ -124,15 +142,19 @@ export function apply(ctx: ClientContext): void {
       setChatMaxWidth: (width) => write('chatMaxWidth', width),
       setMessageSound: (value) => write('messageSound', value),
       setTyping: (value) => write('typing', value),
+      setImmersiveQQ: (value) => write('immersiveQQ', value),
+      setFishVoiceMode: (value) => write('fishVoiceMode', value),
       editBackground: () => images.edit('background'),
+      editDefaultAvatar: () => images.edit('avatar'),
       setBackgroundFit: (value) => write('backgroundFit', value),
     }
   }
-  ctx.slots.inject('settings.general.item', () => ctx.slots.register({
-    name: 'settings.general.item',
-    id: 'qq-skin',
+  ctx.slots.inject('settings.section', () => ctx.slots.register({
+    name: 'settings.section',
+    id: 'qq-interface',
     order: 12,
-    locale: 'dsh-qq-skin.settings',
+    label: () => ctx.locale.bind('dsh-toy-qq.settings')('row.title'),
+    locale: 'dsh-toy-qq.settings',
     store,
     inject: injected,
   }, QQSkinSettingsRow))

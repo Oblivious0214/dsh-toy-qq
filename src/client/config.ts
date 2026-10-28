@@ -17,6 +17,7 @@ export type QQSkinPalette = (typeof QQ_SKIN_PALETTES)[number]
 export interface QQSkinConfig {
   /** Cropped, embedded images; empty strings restore the built-in appearance. */
   avatarImage: string
+  conversationAvatars: Record<string, string>
   chatBackground: string
   backgroundFit: 'cover' | 'contain' | 'fill'
   /** 色板变体。 */
@@ -31,11 +32,14 @@ export interface QQSkinConfig {
   messageSound: boolean
   /** 助手消息打字机揭示动效开关(默认开)。 */
   typing: boolean
+  immersiveQQ: boolean
+  fishVoiceMode: 'voice-text' | 'transcript'
 }
 
 /** 默认配置(与旧行为一致:经典蓝、气泡尾巴、企鹅头像、880px 宽)。 */
 export const QQ_SKIN_DEFAULT_CONFIG: QQSkinConfig = {
   avatarImage: '',
+  conversationAvatars: {},
   chatBackground: '',
   backgroundFit: 'cover',
   palette: 'classic',
@@ -44,13 +48,17 @@ export const QQ_SKIN_DEFAULT_CONFIG: QQSkinConfig = {
   chatMaxWidth: 880,
   messageSound: false,
   typing: true,
+  immersiveQQ: true,
+  fishVoiceMode: 'voice-text',
 }
 
 /** 合并用户配置与默认值,非法字段回落默认。 */
 export function resolveQQSkinConfig(config?: Partial<QQSkinConfig>): QQSkinConfig {
   const raw = config ?? {}
   return {
+    fishVoiceMode: raw.fishVoiceMode === 'transcript' ? 'transcript' : 'voice-text',
     avatarImage: resolveImage(config?.avatarImage),
+    conversationAvatars: resolveConversationAvatars(config?.conversationAvatars),
     chatBackground: resolveImage(config?.chatBackground),
     backgroundFit: ['cover', 'contain', 'fill'].includes(raw.backgroundFit ?? '')
       ? raw.backgroundFit! : 'cover',
@@ -72,6 +80,7 @@ export function resolveQQSkinConfig(config?: Partial<QQSkinConfig>): QQSkinConfi
     typing: typeof raw.typing === 'boolean'
       ? raw.typing
       : QQ_SKIN_DEFAULT_CONFIG.typing,
+    immersiveQQ: typeof raw.immersiveQQ === 'boolean' ? raw.immersiveQQ : QQ_SKIN_DEFAULT_CONFIG.immersiveQQ,
   }
 }
 
@@ -80,4 +89,10 @@ export function resolveImage(value: unknown): string {
   return typeof value === 'string' && value.length <= 3_000_000
     && /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value)
     ? value : ''
+}
+
+export function resolveConversationAvatars(value: unknown): Record<string, string> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  return Object.fromEntries(Object.entries(value).filter(([id, image]) =>
+    id.length > 0 && id.length <= 512 && id !== '__proto__' && !!resolveImage(image)))
 }
