@@ -42,21 +42,6 @@ function fixture(turn = '1', message = 'm1') {
 }
 const tick = () => new Promise(resolve => setTimeout(resolve,20))
 describe('QQ voice replies', () => {
-  it('converts rc.3 shipped Markdown roots without text-interaction attributes', () => {
-    const f = fixture()
-    for (const text of f.texts) { text.removeAttribute('data-text-interaction-source'); text.className = '_markdown_1ypvv_5' }
-    runtime = new QQFishVoiceRuntime()
-    expect(f.buttons()).toHaveLength(2)
-    expect(f.texts.every(text => text.hasAttribute('data-qq-fish-concealed'))).toBe(true)
-  })
-  it('supports source-build names while preserving expanded reasoning', () => {
-    const f = fixture()
-    for (const text of f.texts) { text.removeAttribute('data-text-interaction-source'); text.className = 'newHash_markdown' }
-    f.flow.querySelector('[data-chat-flow-kind=assistant-step]')!.insertAdjacentHTML('afterbegin', '<div data-variant="think"><div class="_markdown_any_1">reasoning</div></div>')
-    runtime = new QQFishVoiceRuntime()
-    expect(f.buttons()).toHaveLength(2)
-    expect(f.flow.querySelector('[data-variant=think] [data-qq-fish-concealed]')).toBeNull()
-  })
   it('creates one collapsed voice bar per segment without calling Fish on arrival', () => {
     const f = fixture(); runtime = new QQFishVoiceRuntime('voice-text')
     expect(f.buttons()).toHaveLength(2)

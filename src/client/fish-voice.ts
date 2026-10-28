@@ -21,16 +21,6 @@ export function voiceDuration(raw: string | undefined): string {
   const value = Number(raw)
   return Number.isFinite(value) && value > 0 ? `${Math.ceil(value)}″` : '语音'
 }
-/** rc.3's shipped Markdown renderer predates text-interaction attributes.
- * Match its CSS-module root name without pinning the generated hash. Keep the
- * semantic attribute path for newer hosts and exclude reasoning at the caller.
- */
-export function voiceTextSources(row: HTMLElement): HTMLElement[] {
-  return [...row.querySelectorAll<HTMLElement>('[data-text-interaction-source], div[class*="markdown"]')]
-    .filter(element => element.hasAttribute('data-text-interaction-source')
-      || [...element.classList].some(name => /(?:^|_)markdown(?:_|$)/.test(name)))
-    .filter(element => !element.parentElement?.closest('[data-text-interaction-source]'))
-}
 interface VoiceEntry {
   marker: HTMLElement
   flow: Element
@@ -86,7 +76,7 @@ export class QQFishVoiceRuntime {
           && Boolean(row.compareDocumentPosition(tail) & Node.DOCUMENT_POSITION_FOLLOWING))
       for (const row of rows) {
         if (row.querySelector('[data-streaming]')) continue
-        for (const text of voiceTextSources(row)) {
+        for (const text of row.querySelectorAll<HTMLElement>('[data-text-interaction-source]')) {
           if (this.entries.has(text) || text.closest('[data-variant="think"]')
             || text.querySelector('img,video,audio,pre,table,[data-meme]')) continue
           const content = text.textContent?.trim()
