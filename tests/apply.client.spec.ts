@@ -138,6 +138,21 @@ describe('dsh-qq-skin client apply', () => {
     expect(overrideTokens).toHaveBeenCalledTimes(1)
   })
 
+  it('restores saved images on activation and hot-updates or resets them', () => {
+    const nodes = stubDocument()
+    const saved = 'data:image/webp;base64,YWJjZA=='
+    const next = 'data:image/png;base64,YWJjZA=='
+    const { ctx, host } = makeCtx(undefined, { avatarImage: saved, chatBackground: saved })
+    apply(ctx as never)
+    expect(nodes.at(-1)!.textContent).toContain(saved)
+    host.push({ avatarImage: next, chatBackground: next, backgroundFit: 'contain' })
+    expect(nodes.at(-1)!.textContent).toContain(next)
+    expect(nodes.at(-1)!.textContent).toContain('background-size: contain')
+    host.push({ avatarImage: '', chatBackground: '' }, 2)
+    expect(nodes.at(-1)!.textContent).not.toContain(next)
+    expect(nodes.at(-1)!.textContent).not.toContain(saved)
+  })
+
   it('writes settings fields back through the config form', () => {
     const host = stubConfigForm()
     let injected: Record<string, (value: never) => void> | undefined
@@ -156,8 +171,9 @@ describe('dsh-qq-skin client apply', () => {
     apply(ctx as never)
     injected!.setPalette!('green' as never)
     injected!.setChatMaxWidth!(640 as never)
+    injected!.setBackgroundFit!('contain' as never)
 
-    expect(host.written).toEqual([['palette', 'green'], ['chatMaxWidth', 640]])
+    expect(host.written).toEqual([['palette', 'green'], ['chatMaxWidth', 640], ['backgroundFit', 'contain']])
   })
 
   it('removes the layer through the effect cleanup on dispose', async () => {

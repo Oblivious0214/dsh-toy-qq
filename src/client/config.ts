@@ -15,6 +15,10 @@ export type QQSkinPalette = (typeof QQ_SKIN_PALETTES)[number]
 
 /** 用户可调配置。 */
 export interface QQSkinConfig {
+  /** Cropped, embedded images; empty strings restore the built-in appearance. */
+  avatarImage: string
+  chatBackground: string
+  backgroundFit: 'cover' | 'contain' | 'fill'
   /** 色板变体。 */
   palette: QQSkinPalette
   /** 用户气泡右侧"尾巴"伪元素开关。 */
@@ -31,6 +35,9 @@ export interface QQSkinConfig {
 
 /** 默认配置(与旧行为一致:经典蓝、气泡尾巴、企鹅头像、880px 宽)。 */
 export const QQ_SKIN_DEFAULT_CONFIG: QQSkinConfig = {
+  avatarImage: '',
+  chatBackground: '',
+  backgroundFit: 'cover',
   palette: 'classic',
   bubbleTail: true,
   assistantAvatar: true,
@@ -43,6 +50,10 @@ export const QQ_SKIN_DEFAULT_CONFIG: QQSkinConfig = {
 export function resolveQQSkinConfig(config?: Partial<QQSkinConfig>): QQSkinConfig {
   const raw = config ?? {}
   return {
+    avatarImage: resolveImage(config?.avatarImage),
+    chatBackground: resolveImage(config?.chatBackground),
+    backgroundFit: ['cover', 'contain', 'fill'].includes(raw.backgroundFit ?? '')
+      ? raw.backgroundFit! : 'cover',
     palette: QQ_SKIN_PALETTES.includes(raw.palette as QQSkinPalette)
       ? (raw.palette as QQSkinPalette)
       : QQ_SKIN_DEFAULT_CONFIG.palette,
@@ -62,4 +73,11 @@ export function resolveQQSkinConfig(config?: Partial<QQSkinConfig>): QQSkinConfi
       ? raw.typing
       : QQ_SKIN_DEFAULT_CONFIG.typing,
   }
+}
+
+/** Accept raster data only: never interpolate arbitrary URLs or SVG into CSS. */
+export function resolveImage(value: unknown): string {
+  return typeof value === 'string' && value.length <= 3_000_000
+    && /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value)
+    ? value : ''
 }

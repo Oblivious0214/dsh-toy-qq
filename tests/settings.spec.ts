@@ -8,6 +8,7 @@ describe('QQ skin settings', () => {
 
   it('resolves to defaults when no setting section and no fallback', () => {
     expect(settingsToConfig(undefined)).toEqual({
+      avatarImage: '', chatBackground: '', backgroundFit: 'cover',
       palette: 'classic', bubbleTail: true, assistantAvatar: true,
       chatMaxWidth: 880, messageSound: false, typing: true,
     })
@@ -17,6 +18,7 @@ describe('QQ skin settings', () => {
     const section: QQSkinSettings = { palette: 'vivid', chatMaxWidth: 720 }
     const config = settingsToConfig(section, { palette: 'clean', bubbleTail: false })
     expect(config).toEqual({
+      avatarImage: '', chatBackground: '', backgroundFit: 'cover',
       palette: 'vivid', bubbleTail: false, assistantAvatar: true,
       chatMaxWidth: 720, messageSound: false, typing: true,
     })
@@ -26,6 +28,7 @@ describe('QQ skin settings', () => {
     const section: QQSkinSettings = { bubbleTail: false }
     const config = settingsToConfig(section, { palette: 'green', chatMaxWidth: 640 })
     expect(config).toEqual({
+      avatarImage: '', chatBackground: '', backgroundFit: 'cover',
       palette: 'green', bubbleTail: false, assistantAvatar: true,
       chatMaxWidth: 640, messageSound: false, typing: true,
     })

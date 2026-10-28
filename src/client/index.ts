@@ -35,6 +35,7 @@ import type { QQSkinRowInjected } from './settings-row.tsx'
 import { QQSkinSettingsRow } from './settings-row.tsx'
 import { QQSkinRuntime } from './runtime.ts'
 import { QQSoundRuntime } from './qq-sound.ts'
+import { QQImageRuntime } from './image-runtime.ts'
 
 /**
  * 依赖的服务:主题运行时 + 槽位 + 文案 + 设置表单。
@@ -55,6 +56,9 @@ export { QQ_SKIN_SETTINGS_NS }
 /** 两份配置是否等价(字段固定,逐字段比较以免无谓重挂皮肤层)。 */
 function sameConfig(left: QQSkinConfig, right: QQSkinConfig): boolean {
   return left.palette === right.palette
+    && left.avatarImage === right.avatarImage
+    && left.chatBackground === right.chatBackground
+    && left.backgroundFit === right.backgroundFit
     && left.bubbleTail === right.bubbleTail
     && left.assistantAvatar === right.assistantAvatar
     && left.chatMaxWidth === right.chatMaxWidth
@@ -75,6 +79,9 @@ export function apply(ctx: ClientContext): void {
 
   // 设置表单:宿主条目配置的读写面(值 = 默认值 → profile 配置 → 用户改写)。
   const host = ctx.configForms.get<QQSkinSettings>(QQ_SKIN_SETTINGS_NS)
+  const images = new QQImageRuntime(runtime.getConfig(), (kind, image) =>
+    host.set(kind === 'avatar' ? 'avatarImage' : 'chatBackground', image))
+  ctx.effect(() => () => images.dispose(), 'dsh-qq-skin: image controls')
 
   // 设置行:store 镜像当前配置,订阅把配置写回 store 并热更新两层。
   const store = createQQSkinRowStore()
@@ -91,6 +98,7 @@ export function apply(ctx: ClientContext): void {
     if (!sameConfig(merged, runtime.getConfig())) {
       runtime.update(merged)
       sound.update(merged)
+      images.update(runtime.getConfig())
     }
     syncRow()
   }
@@ -116,6 +124,8 @@ export function apply(ctx: ClientContext): void {
       setChatMaxWidth: (width) => write('chatMaxWidth', width),
       setMessageSound: (value) => write('messageSound', value),
       setTyping: (value) => write('typing', value),
+      editBackground: () => images.edit('background'),
+      setBackgroundFit: (value) => write('backgroundFit', value),
     }
   }
   ctx.slots.inject('settings.general.item', () => ctx.slots.register({

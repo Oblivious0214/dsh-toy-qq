@@ -16,6 +16,9 @@ import { QQ_SKIN_PALETTES, type QQSkinPalette } from './client/config.ts'
 
 /** 设置字段的运行时形状:volatile 字段在 Live 配置里以 ref 形式存在。 */
 export interface Config {
+  avatarImage: Volatile<string>
+  chatBackground: Volatile<string>
+  backgroundFit: Volatile<'cover' | 'contain' | 'fill'>
   /** 色板变体。 */
   palette: Volatile<QQSkinPalette>
   /** 用户气泡右侧"尾巴"伪元素开关。 */
@@ -32,6 +35,9 @@ export interface Config {
 
 /** 设置分节 schema:宿主校验条目配置、设置面板渲染表单共用。 */
 export const Config = z.object({
+  avatarImage: z.string().default('').volatile(),
+  chatBackground: z.string().default('').volatile(),
+  backgroundFit: z.union(['cover', 'contain', 'fill']).default('cover').volatile(),
   palette: z.union([...QQ_SKIN_PALETTES]).default('classic').volatile(),
   bubbleTail: z.boolean().default(true).volatile(),
   assistantAvatar: z.boolean().default(true).volatile(),

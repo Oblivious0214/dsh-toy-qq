@@ -8,6 +8,12 @@ export const QQ_SKIN_ROW_NS = 'dsh-qq-skin.settings'
 
 /** 设置行文案键全集。 */
 export type QQSkinSettingsKey =
+  | 'row.background'
+  | 'row.chooseBackground'
+  | 'row.backgroundFit'
+  | 'fit.cover'
+  | 'fit.contain'
+  | 'fit.fill'
   | 'row.title'
   | 'row.palette'
   | 'palette.classic'
@@ -30,6 +36,12 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 
 /** 中文文案。 */
 export const zh: Record<QQSkinSettingsKey, string> = {
+  'row.background': '对话背景',
+  'row.chooseBackground': '选择、裁剪或恢复默认',
+  'row.backgroundFit': '背景适应方式',
+  'fit.cover': '填充（保持比例）',
+  'fit.contain': '适应（显示完整图片）',
+  'fit.fill': '拉伸',
   'row.title': 'QQ 皮肤',
   'row.palette': '色板',
   'palette.classic': '经典蓝',
@@ -46,6 +58,12 @@ export const zh: Record<QQSkinSettingsKey, string> = {
 
 /** 英文文案。 */
 export const en: Record<QQSkinSettingsKey, string> = {
+  'row.background': 'Chat background',
+  'row.chooseBackground': 'Choose, crop or restore default',
+  'row.backgroundFit': 'Background fit',
+  'fit.cover': 'Fill (keep aspect ratio)',
+  'fit.contain': 'Fit (show entire image)',
+  'fit.fill': 'Stretch',
   'row.title': 'QQ Skin',
   'row.palette': 'Palette',
   'palette.classic': 'Classic Blue',

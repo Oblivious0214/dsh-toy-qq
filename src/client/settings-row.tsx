@@ -20,12 +20,14 @@ import type { PropsLocale, PropsRuntime, PropsStore } from '@deepseek-ai/dsh-cli
 // 槽),与 ui-theme 的 AppearanceRow 同款——交叉插件协作始终走类型引用,
 // 客户端 bundle 纯净性门禁不允许 value import。
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
-import { QQ_SKIN_PALETTES, type QQSkinPalette } from './config.ts'
+import { QQ_SKIN_PALETTES, type QQSkinPalette, type QQSkinConfig } from './config.ts'
 import type { createQQSkinRowStore } from './settings-store.ts'
 import type { QQSkinSettingsKey } from './settings-locales.ts'
 
 /** 注入的业务面:各字段的持久化写入口(经 SettingsScope.set 排队)。 */
 export interface QQSkinRowInjected {
+  editBackground: () => void
+  setBackgroundFit: (value: QQSkinConfig['backgroundFit']) => void
   /** 切换色板变体。 */
   setPalette: (palette: QQSkinPalette) => void
   /** 开关用户气泡尾巴。 */
@@ -201,7 +203,7 @@ function ToggleRow({ label, checked, onChange }: {
  */
 export function QQSkinSettingsRow({
   t, useStore, setPalette, setBubbleTail, setAssistantAvatar, setChatMaxWidth,
-  setMessageSound, setTyping,
+  setMessageSound, setTyping, editBackground, setBackgroundFit,
 }: QQSkinRowComponentProps) {
   const config = useStore(s => s.config)
   const [widthDraft, setWidthDraft] = useState(String(config.chatMaxWidth))
@@ -219,6 +221,19 @@ export function QQSkinSettingsRow({
   return (
     <div style={groupStyle}>
       <div style={titleStyle}>{t('row.title')}</div>
+      <div style={fieldRowStyle}>
+        <span style={fieldLabelStyle}>{t('row.background')}</span>
+        <button type="button" onClick={editBackground}>{t('row.chooseBackground')}</button>
+      </div>
+      {config.chatBackground && <div style={fieldRowStyle}>
+        <label htmlFor="qq-background-fit" style={fieldLabelStyle}>{t('row.backgroundFit')}</label>
+        <select id="qq-background-fit" value={config.backgroundFit}
+          onChange={event => setBackgroundFit(event.currentTarget.value as QQSkinConfig['backgroundFit'])}>
+          <option value="cover">{t('fit.cover')}</option>
+          <option value="contain">{t('fit.contain')}</option>
+          <option value="fill">{t('fit.fill')}</option>
+        </select>
+      </div>}
 
       {/* 色板:五选一卡片(渐变色块 + 文案,选中描边对齐宿主 cube) */}
       <div role="radiogroup" style={cardRowStyle}>

@@ -26,6 +26,29 @@ The skin registers a **QQ Skin** settings row in the App settings General sectio
 
 ## Configuration
 
+### Custom avatar and chat wallpaper
+
+Click the penguin beside an assistant reply (or focus it and press Enter) to
+choose a PNG, JPEG or WebP image, up to 20 MB. The editor previews a square crop;
+drag to position it or use the zoom and position sliders, then **Crop and save**.
+
+In **Settings → General → QQ Skin → Chat background**, choose and crop a wallpaper.
+Use the current conversation aspect ratio, 16:9, 4:3, 9:16, or the original image
+ratio. Like desktop wallpaper settings, **Fill** preserves the ratio and covers
+the view, **Fit** shows the whole crop, and **Stretch** fills both dimensions.
+The wallpaper affects only the conversation scroll area.
+
+Both editors offer **Restore default** and **Cancel**. Changes are saved only on
+confirmation; errors leave the editor open for retry. The cropped image is resized
+(avatar: at most 512 px; wallpaper: at most 1600 px on its longest edge) and embedded
+in the existing `qq-skin` profile settings. It persists across reloads and applies
+to all conversations using that profile; the original file is not stored. Images
+are not sent to an external image host, added to messages, or added to model context.
+
+Advanced config fields: `avatarImage` and `chatBackground` accept embedded raster
+data URLs (empty strings restore defaults), and `backgroundFit` is `cover` (default),
+`contain`, or `fill`.
+
 The plugin receives config the cordis function-plugin way (`apply(ctx, config)`); unset fields fall back to defaults:
 
 | Option | Default | Meaning |

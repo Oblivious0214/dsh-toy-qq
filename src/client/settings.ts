@@ -19,6 +19,9 @@ export const QQ_SKIN_SETTINGS_NS = 'qq-skin'
 
 /** 设置分节里的持久化字段:形状与 QQSkinConfig 一致,全部可缺省。 */
 export interface QQSkinSettings {
+  avatarImage?: string
+  chatBackground?: string
+  backgroundFit?: QQSkinConfig['backgroundFit']
   palette?: QQSkinPalette
   bubbleTail?: boolean
   assistantAvatar?: boolean
@@ -39,6 +42,9 @@ export function settingsToConfig(
 ): QQSkinConfig {
   const s = section ?? {}
   return {
+    avatarImage: s.avatarImage ?? fallback?.avatarImage ?? '',
+    chatBackground: s.chatBackground ?? fallback?.chatBackground ?? '',
+    backgroundFit: s.backgroundFit ?? fallback?.backgroundFit ?? 'cover',
     palette: s.palette ?? fallback?.palette ?? 'classic',
     bubbleTail: s.bubbleTail ?? fallback?.bubbleTail ?? true,
     assistantAvatar: s.assistantAvatar ?? fallback?.assistantAvatar ?? true,

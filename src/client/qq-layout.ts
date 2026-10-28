@@ -20,13 +20,13 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import { QQ_AVATAR_DATA_URI } from './qq-avatar.ts'
-import { QQ_SKIN_DEFAULT_CONFIG, type QQSkinConfig } from './config.ts'
+import { QQ_SKIN_DEFAULT_CONFIG, resolveQQSkinConfig, type QQSkinConfig } from './config.ts'
 
 /** 注入的 <style> 标签归属标识(便于排查与测试断言)。 */
 export const QQ_LAYOUT_PLUGIN = 'dsh-qq-skin/layout'
 
 /** 企鹅头像圆标(默认开启时注入;关闭后无头像,也不占左侧空间)。 */
-function avatarRule(): string {
+function avatarRule(image: string): string {
   return `
 [data-chat-flow-kind='assistant-step'] {
   position: relative;
@@ -41,12 +41,21 @@ function avatarRule(): string {
   height: 22px;
   border-radius: 50%;
   background-color: var(--dsw-alias-bg-layer-1);
-  background-image: url("${QQ_AVATAR_DATA_URI}");
+  background-image: url("${image || QQ_AVATAR_DATA_URI}");
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
   box-shadow: 0 1px 3px rgba(18, 183, 245, 0.35);
 }
+[data-chat-flow-kind='assistant-step']:has(> [data-qq-avatar])::before { display: none; }
+[data-qq-avatar] {
+  position: absolute; top: 13px; left: -36px;
+  width: 22px; height: 22px; padding: 0;
+  border: 0; border-radius: 50%; cursor: pointer;
+  background: var(--dsw-alias-bg-layer-1) url("${image || QQ_AVATAR_DATA_URI}") center / cover no-repeat;
+  box-shadow: 0 1px 3px rgba(18, 183, 245, 0.35);
+}
+[data-qq-avatar]:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 3px; }
 `
 }
 
@@ -86,8 +95,14 @@ function typingRule(): string {
  * @param config - 用户配置(可缺省,回落默认)。
  */
 export function buildQQLayoutCss(config: QQSkinConfig = QQ_SKIN_DEFAULT_CONFIG): string {
-  const { bubbleTail, assistantAvatar, chatMaxWidth, typing } = config
+  const { bubbleTail, assistantAvatar, chatMaxWidth, typing, avatarImage, chatBackground, backgroundFit } = resolveQQSkinConfig(config)
   return `
+${chatBackground ? `[data-conversation-scroll] {
+  background-image: url("${chatBackground}");
+  background-size: ${backgroundFit === 'fill' ? '100% 100%' : backgroundFit};
+  background-position: center;
+  background-repeat: no-repeat;
+}` : ''}
 /* ── 消息流:居中收窄,像聊天窗口的画布 ─────────────────────────────── */
 [data-chat-flow] {
   max-width: ${chatMaxWidth}px;
@@ -107,7 +122,7 @@ export function buildQQLayoutCss(config: QQSkinConfig = QQ_SKIN_DEFAULT_CONFIG):
    > [data-slot] > [class$='_root'] 精确命中 AssistantMarkdown 的
    root(避免误伤嵌套的 ReasoningRow 等同名 root)。头像 top 按
    卡片 padding-top 12px + Think 行高 24px 垂直居中:12 + 12 - 11 = 13。 */
-${assistantAvatar ? avatarRule() : ''}
+${assistantAvatar ? avatarRule(avatarImage) : ''}
 [data-chat-flow-kind='assistant-step'] > [data-slot] > [class$='_root'] {
   border-radius: 16px 16px 16px 6px;
   padding: 12px 16px;
