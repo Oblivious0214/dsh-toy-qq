@@ -149,6 +149,20 @@ describe('image controls in the browser DOM', () => {
   })
 
   const settle = async () => { await new Promise(resolve => setTimeout(resolve, 0)) }
+  it('uses persona defaults while preserving manually chosen conversation avatars', () => {
+    const manual = 'data:image/png;base64,YWJjZA=='
+    browser.document.body.innerHTML = '<main data-conversation-session="a"><div data-chat-flow-kind="assistant-step"></div></main><main data-conversation-session="b"><div data-chat-flow-kind="assistant-step"></div></main>'
+    runtime = new QQImageRuntime({...QQ_SKIN_DEFAULT_CONFIG,conversationAvatars:{a:manual}},vi.fn())
+    runtime.setPersonaAvatar({sessionId:'a',image:data})
+    runtime.setPersonaAvatar({sessionId:'b',image:data})
+    const avatars = browser.document.querySelectorAll<HTMLButtonElement>('[data-qq-avatar]')
+    expect(avatars[0]!.style.backgroundImage).toContain(manual)
+    expect(avatars[1]!.style.backgroundImage).toContain(data)
+    runtime.update(QQ_SKIN_DEFAULT_CONFIG)
+    expect(avatars[0]!.style.backgroundImage).toContain(data)
+    browser.document.dispatchEvent(new browser.CustomEvent('qq-skin:persona-avatar',{detail:{sessionId:'b',image:null}}))
+    expect(avatars[1]!.style.backgroundImage).toBe('')
+  })
   const button = (label: string) => Array.from(browser.document.querySelectorAll('button')).find(el => el.textContent === label)!
   const pick = (type = 'image/png', size = 32) => {
     const input = browser.document.querySelector('input[type=file]')!
@@ -231,7 +245,7 @@ describe('image controls in the browser DOM', () => {
     context.provide('configForms', {get: () => ({getSnapshot: () => ({value: state, revision: 0}), set: writes,
       subscribe: (fn: () => void) => {listeners.add(fn); return () => listeners.delete(fn)}})} as never)
     context.provide('locale', {register: () => () => {}} as never)
-    context.provide('slots', {inject: (_: string, fn: () => void) => fn(), register: (options: any) => {
+    context.provide('slots', {inject: (name: string, fn: () => void) => { if (name === 'settings.section') fn() }, register: (options: any) => {
       injected = options.inject({sync() {}}); return () => {}
     }} as never)
     apply(context as never)

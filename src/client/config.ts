@@ -33,7 +33,8 @@ export interface QQSkinConfig {
   /** 助手消息打字机揭示动效开关(默认开)。 */
   typing: boolean
   immersiveQQ: boolean
-  fishVoiceMode: 'voice-text' | 'transcript'
+  fishVoiceMode: 'always-text' | 'voice-text' | 'transcript'
+  fishVoiceGeneration: 'auto' | 'on-click'
   fishVoiceWidths: { min: number; max: number }
 }
 
@@ -51,6 +52,7 @@ export const QQ_SKIN_DEFAULT_CONFIG: QQSkinConfig = {
   typing: true,
   immersiveQQ: true,
   fishVoiceMode: 'voice-text',
+  fishVoiceGeneration: 'auto',
   fishVoiceWidths: { min:160, max:360 },
 }
 
@@ -59,7 +61,8 @@ export function resolveQQSkinConfig(config?: Partial<QQSkinConfig>): QQSkinConfi
   const raw = config ?? {}
   return {
     fishVoiceWidths: resolveVoiceWidths(raw.fishVoiceWidths),
-    fishVoiceMode: raw.fishVoiceMode === 'transcript' ? 'transcript' : 'voice-text',
+    fishVoiceMode: raw.fishVoiceMode === 'transcript' || raw.fishVoiceMode === 'always-text' ? raw.fishVoiceMode : 'voice-text',
+    fishVoiceGeneration: raw.fishVoiceGeneration === 'on-click' ? 'on-click' : 'auto',
     avatarImage: resolveImage(config?.avatarImage),
     conversationAvatars: resolveConversationAvatars(config?.conversationAvatars),
     chatBackground: resolveImage(config?.chatBackground),

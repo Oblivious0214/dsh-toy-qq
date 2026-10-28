@@ -6,7 +6,7 @@ import { QQ_SKIN_PALETTES } from '../src/client/config.ts'
 
 describe('QQ skin token layer', () => {
   it('names the plugin as the override source', () => {
-    expect(QQ_SKIN_SOURCE).toBe('dsh-toy-qq')
+    expect(QQ_SKIN_SOURCE).toBe('dsh-qq-skin')
   })
 
   it('provides a non-empty override set', () => {

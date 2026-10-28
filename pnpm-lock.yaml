@@ -29,6 +29,12 @@ importers:
       '@deepseek-ai/dsh-client-store':
         specifier: workspace:^
         version: link:../deepseek-harness/packages/client/store
+      '@deepseek-ai/dsh-client-ui-attachment':
+        specifier: workspace:^
+        version: link:../deepseek-harness/packages/client/ui-attachment
+      '@deepseek-ai/dsh-client-ui-chat':
+        specifier: workspace:^
+        version: link:../deepseek-harness/packages/client/ui-chat
       '@deepseek-ai/dsh-client-ui-renderer':
         specifier: workspace:^
         version: link:../deepseek-harness/packages/client/ui-renderer
@@ -53,9 +59,30 @@ importers:
       '@types/react':
         specifier: ^18.3.31
         version: 18.3.31
+      esbuild:
+        specifier: 0.25.0
+        version: 0.25.0
       happy-dom:
         specifier: ^20.12.2
         version: 20.12.2
+      mdast-util-from-markdown:
+        specifier: 2.0.3
+        version: 2.0.3
+      mdast-util-gfm:
+        specifier: 3.1.0
+        version: 3.1.0
+      mdast-util-math:
+        specifier: 3.0.0
+        version: 3.0.0
+      micromark-extension-gfm:
+        specifier: 3.0.0
+        version: 3.0.0
+      micromark-extension-math:
+        specifier: 3.1.0
+        version: 3.1.0
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.2.0(react@18.2.0)
       tsdown:
         specifier: ^0.22.2
         version: 0.22.14(tsx@4.23.12)(typescript@6.0.3)
@@ -633,6 +660,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/skill/skill
 
+  ../deepseek-harness/apps/plugin-market-generator: {}
+
   ../deepseek-harness/apps/web:
     devDependencies:
       '@deepseek-ai/cordis-plugin-group':
@@ -1040,6 +1069,8 @@ importers:
       '@deepseek-ai/dsh-typert-registry':
         specifier: workspace:*
         version: link:../../typert/registry
+
+  ../deepseek-harness/packages/api/remote-access: {}
 
   ../deepseek-harness/packages/api/remotes:
     dependencies:
@@ -1765,6 +1796,8 @@ importers:
       '@deepseek-ai/dsh-user-approval':
         specifier: workspace:*
         version: link:../../interaction/user-approval
+
+  ../deepseek-harness/packages/boot/plugin-market: {}
 
   ../deepseek-harness/packages/browser-use/browser-use:
     devDependencies:
@@ -3469,6 +3502,8 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
 
+  ../deepseek-harness/packages/client/ui-deepseek-model-label-1017: {}
+
   ../deepseek-harness/packages/client/ui-deliverables:
     dependencies:
       '@deepseek-ai/dsh-typert-protocol':
@@ -3664,6 +3699,10 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+
+  ../deepseek-harness/packages/client/ui-entry-customization: {}
+
+  ../deepseek-harness/packages/client/ui-file-drag: {}
 
   ../deepseek-harness/packages/client/ui-goal:
     devDependencies:
@@ -4278,6 +4317,8 @@ importers:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
 
+  ../deepseek-harness/packages/client/ui-plugin-market: {}
+
   ../deepseek-harness/packages/client/ui-primitives:
     devDependencies:
       '@deepseek-ai/cordis':
@@ -4523,6 +4564,8 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+
+  ../deepseek-harness/packages/client/ui-secret-mask: {}
 
   ../deepseek-harness/packages/client/ui-session:
     devDependencies:
@@ -6485,6 +6528,8 @@ importers:
         specifier: workspace:*
         version: link:../../core/tools
 
+  ../deepseek-harness/packages/context/harness-dev-context: {}
+
   ../deepseek-harness/packages/context/session-reference:
     dependencies:
       '@deepseek-ai/dsh-brand':
@@ -6856,6 +6901,10 @@ importers:
         specifier: workspace:*
         version: link:../scope
 
+  ../deepseek-harness/packages/core/tool-executor-native: {}
+
+  ../deepseek-harness/packages/core/tool-executor-ptc: {}
+
   ../deepseek-harness/packages/core/tools:
     dependencies:
       '@deepseek-ai/dsh-brand':
@@ -7001,6 +7050,8 @@ importers:
         specifier: workspace:*
         version: link:../../host/webserver
 
+  ../deepseek-harness/packages/deliverables/deliverable-file-references: {}
+
   ../deepseek-harness/packages/deliverables/tool-present:
     dependencies:
       '@deepseek-ai/schemastery':
@@ -7117,6 +7168,8 @@ importers:
       '@deepseek-ai/dsh-session':
         specifier: workspace:*
         version: link:../../core/session
+
+  ../deepseek-harness/packages/experimental/action-cards: {}
 
   ../deepseek-harness/packages/experimental/agent-team:
     dependencies:
@@ -7307,6 +7360,8 @@ importers:
       '@deepseek-ai/dsh-user-approval':
         specifier: workspace:*
         version: link:../../interaction/user-approval
+
+  ../deepseek-harness/packages/experimental/badge-skill-bundle: {}
 
   ../deepseek-harness/packages/experimental/browser-use-chrome-devtools-mcp:
     dependencies:
@@ -7528,6 +7583,10 @@ importers:
         specifier: ^4.19.2
         version: 4.23.12
 
+  ../deepseek-harness/packages/experimental/claude-code-mods: {}
+
+  ../deepseek-harness/packages/experimental/client-ui-action-cards: {}
+
   ../deepseek-harness/packages/experimental/client-ui-agent-team:
     devDependencies:
       '@deepseek-ai/cordis':
@@ -7584,6 +7643,14 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+
+  ../deepseek-harness/packages/experimental/client-ui-claude-code-mods: {}
+
+  ../deepseek-harness/packages/experimental/client-ui-cot-translation: {}
+
+  ../deepseek-harness/packages/experimental/client-ui-creation-recommendations: {}
+
+  ../deepseek-harness/packages/experimental/client-ui-plugin-recommendations: {}
 
   ../deepseek-harness/packages/experimental/client-ui-voice-input:
     devDependencies:
@@ -7755,6 +7822,22 @@ importers:
         specifier: workspace:*
         version: link:../../core/tools
 
+  ../deepseek-harness/packages/experimental/cot-translation-bundle: {}
+
+  ../deepseek-harness/packages/experimental/creation-recommendations: {}
+
+  ../deepseek-harness/packages/experimental/cua: {}
+
+  ../deepseek-harness/packages/experimental/cua-bundle: {}
+
+  ../deepseek-harness/packages/experimental/cua-macos: {}
+
+  ../deepseek-harness/packages/experimental/hook-protocol: {}
+
+  ../deepseek-harness/packages/experimental/hooks-claude-code: {}
+
+  ../deepseek-harness/packages/experimental/hooks-codex: {}
+
   ../deepseek-harness/packages/experimental/inspector:
     dependencies:
       '@deepseek-ai/dsh-app-boot':
@@ -7798,6 +7881,16 @@ importers:
         specifier: ^4.19.2
         version: 4.23.12
 
+  ../deepseek-harness/packages/experimental/inspector-profile: {}
+
+  ../deepseek-harness/packages/experimental/liveshare-protocol: {}
+
+  ../deepseek-harness/packages/experimental/personalized-recommendations: {}
+
+  ../deepseek-harness/packages/experimental/plugin-market-bundle: {}
+
+  ../deepseek-harness/packages/experimental/plugin-recommendations: {}
+
   ../deepseek-harness/packages/experimental/ptc-runtime-python:
     dependencies:
       '@deepseek-ai/schemastery':
@@ -7816,6 +7909,8 @@ importers:
       '@deepseek-ai/dsh-util-values':
         specifier: workspace:*
         version: link:../../util/values
+
+  ../deepseek-harness/packages/experimental/ralph-bundle: {}
 
   ../deepseek-harness/packages/experimental/schedule-bundle:
     dependencies:
@@ -7838,6 +7933,16 @@ importers:
       js-yaml:
         specifier: ^4.2.0
         version: 4.3.1
+
+  ../deepseek-harness/packages/experimental/session-inspector: {}
+
+  ../deepseek-harness/packages/experimental/session-search: {}
+
+  ../deepseek-harness/packages/experimental/session-title-all-prompts-llm: {}
+
+  ../deepseek-harness/packages/experimental/session-titles-bundle: {}
+
+  ../deepseek-harness/packages/experimental/skill-badge: {}
 
   ../deepseek-harness/packages/experimental/speech-to-text:
     dependencies:
@@ -7894,6 +7999,10 @@ importers:
       tsx:
         specifier: ^4.22.4
         version: 4.23.12
+
+  ../deepseek-harness/packages/experimental/subagent-oar: {}
+
+  ../deepseek-harness/packages/experimental/terminal-bundle: {}
 
   ../deepseek-harness/packages/experimental/tool-agent-team:
     dependencies:
@@ -7956,6 +8065,18 @@ importers:
         specifier: workspace:*
         version: link:../../core/tools
 
+  ../deepseek-harness/packages/experimental/tool-ralph: {}
+
+  ../deepseek-harness/packages/experimental/tool-session-query: {}
+
+  ../deepseek-harness/packages/experimental/tool-subagent-oar: {}
+
+  ../deepseek-harness/packages/experimental/tool-terminal: {}
+
+  ../deepseek-harness/packages/experimental/tool-worktree: {}
+
+  ../deepseek-harness/packages/experimental/translator: {}
+
   ../deepseek-harness/packages/experimental/voice-input-bundle:
     dependencies:
       '@deepseek-ai/dsh-experimental-api-speech-to-text':
@@ -7980,6 +8101,10 @@ importers:
       js-yaml:
         specifier: ^4.2.0
         version: 4.3.1
+
+  ../deepseek-harness/packages/experimental/webhook: {}
+
+  ../deepseek-harness/packages/experimental/webhook-github: {}
 
   ../deepseek-harness/packages/experimental/webworker-packer:
     dependencies:
@@ -8105,6 +8230,8 @@ importers:
       chokidar:
         specifier: ^5.0.0
         version: 5.0.0
+
+  ../deepseek-harness/packages/experimental/worktree: {}
 
   ../deepseek-harness/packages/extensions/cordis-client-runner:
     devDependencies:
@@ -10381,6 +10508,8 @@ importers:
         specifier: workspace:*
         version: link:../../workspace/workspace
 
+  ../deepseek-harness/packages/schedule/tool-schedule: {}
+
   ../deepseek-harness/packages/sdk/client:
     dependencies:
       '@deepseek-ai/dsh':
@@ -10659,6 +10788,8 @@ importers:
       '@deepseek-ai/dsh-tools':
         specifier: workspace:*
         version: link:../../core/tools
+
+  ../deepseek-harness/packages/session/message-quotes: {}
 
   ../deepseek-harness/packages/session/session-checkpoint-policy:
     devDependencies:
@@ -11220,6 +11351,10 @@ importers:
       '@deepseek-ai/dsh-session-projection':
         specifier: workspace:*
         version: link:../session-projection
+
+  ../deepseek-harness/packages/session/tool-working-directory: {}
+
+  ../deepseek-harness/packages/session/working-directory: {}
 
   ../deepseek-harness/packages/settings/settings:
     dependencies:
@@ -12024,6 +12159,8 @@ importers:
       '@deepseek-ai/dsh-subprocess-ssh':
         specifier: workspace:*
         version: link:../subprocess-ssh
+
+  ../deepseek-harness/packages/ssh/ssh-helper-runtime: {}
 
   ../deepseek-harness/packages/ssh/subprocess-ssh:
     dependencies:
@@ -13237,6 +13374,8 @@ importers:
         specifier: ^4.0.9
         version: 4.0.9
 
+  ../deepseek-harness/packages/test-support/tool-testkit: {}
+
   ../deepseek-harness/packages/todo/tool-todo:
     dependencies:
       '@deepseek-ai/schemastery':
@@ -13393,6 +13532,8 @@ importers:
         specifier: workspace:~
         version: link:../../../vendor/cordis
 
+  ../deepseek-harness/packages/util/file-drag: {}
+
   ../deepseek-harness/packages/util/home-paths:
     devDependencies:
       '@deepseek-ai/cordis':
@@ -13430,6 +13571,8 @@ importers:
         specifier: workspace:~
         version: link:../../../vendor/cordis
 
+  ../deepseek-harness/packages/util/official-bundles: {}
+
   ../deepseek-harness/packages/util/output-retention:
     devDependencies:
       '@deepseek-ai/cordis':
@@ -13441,6 +13584,10 @@ importers:
       '@deepseek-ai/cordis':
         specifier: workspace:~
         version: link:../../../vendor/cordis
+
+  ../deepseek-harness/packages/util/plugin-detail: {}
+
+  ../deepseek-harness/packages/util/plugin-market-index: {}
 
   ../deepseek-harness/packages/util/time:
     devDependencies:
@@ -13539,6 +13686,8 @@ importers:
       '@deepseek-ai/dsh-llm':
         specifier: workspace:*
         version: link:../../llm/llm
+
+  ../deepseek-harness/packages/web/web-deepseek-api: {}
 
   ../deepseek-harness/packages/web/web-fetch-http:
     dependencies:
@@ -17334,133 +17483,157 @@ packages:
     resolution: {integrity: sha512-C/0zV5IhgVdYhGJTwrY0v8dknxlhiKwtVJkMUaexu9/QvRmzlV4vfU3hZlUSgqc2BxQHntL1mCVbDq8j0FRFDw==}
     cpu: [arm64]
     os: [android]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-darwin-arm64@0.8.7':
     resolution: {integrity: sha512-/u+REDMI4a0/lsJXTM4c53/w31OGZLOReZIyg62uhgLs0kc8NHsj/nOcxTdlQjq5gi0zhdkccD9LaLTXcdzPvw==}
     cpu: [arm64]
     os: [darwin]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-darwin-x64@0.8.7':
     resolution: {integrity: sha512-sMMzFOwCo4WXR+/6zIBThOocSC50iIIZZdfiIDbaLvj0Ax/rWt/iavyfEAqajyvzydLyCqR/ZItdLWSRlu1umw==}
     cpu: [x64]
     os: [darwin]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-freebsd-x64@0.8.7':
     resolution: {integrity: sha512-MpdpKXix9P+Y1rKgjvcNeNtGjXeL1CmttNhYINrWls8kRpm4xM/oBGTmn6w7to8lAlwj5jm8q03dQPl5mRv4Qw==}
     cpu: [x64]
     os: [freebsd]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-arm-gnu@0.8.7':
     resolution: {integrity: sha512-rr1srFLlPAmC1vtxfc9C1YLDe3iH09YjfSeeIidBqKhzx1MATjOAq4mjlRUOnhr/L27MotWIYOFKwVsd5JZFOg==}
     cpu: [arm]
     os: [linux]
     libc: [glibc]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-arm-musl@0.8.7':
     resolution: {integrity: sha512-eAufXh8qBRpiSO6ueaMDL+yyoXIGLhpUce72YbcACtZU2qhExwBIJyEtQf5kH2Ki0X2aqkSjSfog4OPtKXan3Q==}
     cpu: [arm]
     os: [linux]
     libc: [musl]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-arm64-gnu@0.8.7':
     resolution: {integrity: sha512-gw4w6wPoHObBrdIC4duVWLmJOvpdE25j5D7yrM5mACNlK4klRz/lv8hK+ssQk9EJHBgZjSaqZIJVFgqNYbfv7A==}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-arm64-musl@0.8.7':
     resolution: {integrity: sha512-L68N6Y4XkqcIaKo3Ra88JEvBEH4AHff44A4INcrxeVWZ8CZtu2tCpfVxe3hR8qQQMcvBSQlDn24KpkCKEhVvfA==}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-x64-gnu@0.8.7':
     resolution: {integrity: sha512-dzyAbltJmf3Cqlb8HcFuYIf5Yn0fl1vTr3XJ9HiVNNvOlhqPSArOqtw9vI1p6/VTXTjrMLXlU+s+/kNHiIy/Cw==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-x64-musl@0.8.7':
     resolution: {integrity: sha512-Otw4MH3404q0Bbvl+YTdW9aoUV5vXmUw8260bWvt1XlaoIX/ceSgI4ygheRDMfBPoHt6FDayQaO9OLVUZAgkFA==}
     cpu: [x64]
     os: [linux]
     libc: [musl]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-win32-arm64@0.8.7':
     resolution: {integrity: sha512-qo/jyrzryiBuKEsFiuWaBCBe3tRMynQ0qFWFgOEjcCMQeZfBm+wKiVEUEFXXLc7bh8YezguAWp0Mtnhq4ARNyA==}
     cpu: [arm64]
     os: [win32]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-win32-x64@0.8.7':
     resolution: {integrity: sha512-D5lDsVDx6m00E6bWySlWdH72Ca4TPSaphDqB6QjU6MpuNLIJqoGoatYyq2rOmBE8Zv/kunot/o58KGL03P3eiA==}
     cpu: [x64]
     os: [win32]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-parser/binding-android-arm64@0.8.7':
     resolution: {integrity: sha512-eGKYiUDX7Y0V7tDTmg+JTVnXnjMqfXXsorZ+EDf5kxwchQ3Or1HS14MzI2fw+jFhHR85fCWt+mtX33Yao73hIQ==}
     cpu: [arm64]
     os: [android]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-darwin-arm64@0.8.7':
     resolution: {integrity: sha512-Re0RHelKLnjEURulY2/KxW+Ngb8zuNA4BRZuMwgGQNzVumT6u4U2N2hc01oeYVNVof0i7GrXE4UCNBgbpRRnjQ==}
     cpu: [arm64]
     os: [darwin]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-darwin-x64@0.8.7':
     resolution: {integrity: sha512-Hn8DROtQkjlA1ACbPgj4a7eP9IuVOI504oiTwpkWPbpaDWD9KdmnVYCqW+1LfenNK/g7O9NhWGpXEdaCNX7lIA==}
     cpu: [x64]
     os: [darwin]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-freebsd-x64@0.8.7':
     resolution: {integrity: sha512-bAP2OV8wRuzplX/jYxv9+vvqQT8JxyNphI8fLfXGL054Xs+4/J5u33cIm3y4rxY8rdoLmmdiJs2Tq7r7lrDRfA==}
     cpu: [x64]
     os: [freebsd]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-arm-gnu@0.8.7':
     resolution: {integrity: sha512-kTYwJQQgmZeAWdDIWabiReIZMpmfLueIj1tCmjStUtFGhR1Z0qwxonKVfUC4N7h/VhGGzLZ//7O1kgt1QKqgCg==}
     cpu: [arm]
     os: [linux]
     libc: [glibc]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-arm-musl@0.8.7':
     resolution: {integrity: sha512-uL4jE8HPT2BLlxAXyD10LqgPuXa9eDa0BKpCdSANmzIJghq/2eZo3/gQNtaxPZMupWoxjYzSad9IXrwu7aYPXQ==}
     cpu: [arm]
     os: [linux]
     libc: [musl]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-arm64-gnu@0.8.7':
     resolution: {integrity: sha512-3gVN4pWSKZmXiNX7cU164dR9MPvesCHnlH6nPfpK+yQsCuYphjKKplcb4SnZBrhiqmXbgb2HR0c2TS0IZUPhgA==}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-arm64-musl@0.8.7':
     resolution: {integrity: sha512-S0mwfEjoLpxzXeZw802Wa4RaELsQiPtWqG6INcy8j4GtvNFtl4LCX3eGO1XLn9pyLAISLzTRyU3zUCBUPin8lg==}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-x64-gnu@0.8.7':
     resolution: {integrity: sha512-lnbWdPmerE5D1uH1G4IEZKnPzCrWCStRGrtgpSIe1RibAo5bZIjDbbbPYXmMHCEh4F+x/JaJpElh26a3r+BPbg==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-x64-musl@0.8.7':
     resolution: {integrity: sha512-769uwndMvMzUvATWbAcEvyLHKA+DzhHSCl/obBUrRdYfRo26yxui6S8y3z7uJ+Naup7UKrDxrpK7OnQkxkl9KQ==}
     cpu: [x64]
     os: [linux]
     libc: [musl]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-win32-arm64@0.8.7':
     resolution: {integrity: sha512-mEB/9PlaAkisJ6KWGz0zvywXoU6+80dTlR2LwS7s/jcXXoU6fm2+sitBZXtqu3+Q4DcDgPxM45uWMCzPs0TSRw==}
     cpu: [arm64]
     os: [win32]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-win32-x64@0.8.7':
     resolution: {integrity: sha512-8vNB2DP0ou61nGb8tc/qfi41gfyDXz1MHr2zqL3nR+cJ6CEbiuWV/l/a/vv151gCgiZLLAyGkQGENpozdg716w==}
     cpu: [x64]
     os: [win32]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-toolchain/types@0.8.7':
     resolution: {integrity: sha512-2Z53dNxAJL6UvFoIrDZvYf3zlO8s4VJK4O2hhaB4mXVwwpX/7ajtss3cmfqKvamlNLWyt9FSWs4eoYdlbxpnHA==}
@@ -19157,9 +19330,6 @@ packages:
   jose@6.2.9:
     resolution: {integrity: sha512-XrchZOFZUl/T3vTwRe8XK+cJrGtMF4th1ARnDfwbBXFKThGhlsxEE4Zu03AD/bjJSt/9jT/mxrOCkJWOg77aPA==}
 
-  js-tokens@3.0.0:
-    resolution: {integrity: sha512-poXEQHPMmTrYZuJgNRll2sbc3kJsSU1m/g1Q93IE6txNj3p6xOOOmdj1G/zCVGawYSPzTkSoWGg1otqbeqKJeg==}
-
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -19913,6 +20083,10 @@ packages:
 
   picomatch@4.0.5:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
+    engines: {node: '>=12'}
+
+  picomatch@4.0.7:
+    resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
   pkce-challenge@5.0.0:
@@ -24822,6 +24996,10 @@ snapshots:
     optionalDependencies:
       supports-color: 9.4.0
 
+  debug@4.4.3:
+    dependencies:
+      ms: 2.1.3
+
   debug@4.4.3(supports-color@9.4.0):
     dependencies:
       ms: 2.1.3
@@ -25368,6 +25546,10 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.5):
     optionalDependencies:
       picomatch: 4.0.5
+
+  fdir@6.5.0(picomatch@4.0.7):
+    optionalDependencies:
+      picomatch: 4.0.7
 
   fetch-blob@3.2.0:
     dependencies:
@@ -26066,8 +26248,6 @@ snapshots:
 
   jose@6.2.9: {}
 
-  js-tokens@3.0.0: {}
-
   js-tokens@4.0.0: {}
 
   js-yaml@4.3.1:
@@ -26253,7 +26433,7 @@ snapshots:
 
   loose-envify@1.4.0:
     dependencies:
-      js-tokens: 3.0.0
+      js-tokens: 4.0.0
 
   lowercase-keys@2.0.0: {}
 
@@ -26295,6 +26475,23 @@ snapshots:
       unist-util-is: 6.0.1
       unist-util-visit-parents: 6.0.2
 
+  mdast-util-from-markdown@2.0.3:
+    dependencies:
+      '@types/mdast': 4.0.4
+      '@types/unist': 3.0.3
+      decode-named-character-reference: 1.3.0
+      devlop: 1.1.0
+      mdast-util-to-string: 4.0.0
+      micromark: 4.0.0
+      micromark-util-decode-numeric-character-reference: 2.0.0
+      micromark-util-decode-string: 2.0.1
+      micromark-util-normalize-identifier: 2.0.0
+      micromark-util-symbol: 2.0.1
+      micromark-util-types: 2.0.3
+      unist-util-stringify-position: 4.0.0
+    transitivePeerDependencies:
+      - supports-color
+
   mdast-util-from-markdown@2.0.3(supports-color@9.4.0):
     dependencies:
       '@types/mdast': 4.0.4
@@ -26320,6 +26517,16 @@ snapshots:
       mdast-util-find-and-replace: 3.0.2
       micromark-util-character: 2.1.1
 
+  mdast-util-gfm-footnote@2.1.0:
+    dependencies:
+      '@types/mdast': 4.0.4
+      devlop: 1.1.0
+      mdast-util-from-markdown: 2.0.3
+      mdast-util-to-markdown: 2.1.0
+      micromark-util-normalize-identifier: 2.0.0
+    transitivePeerDependencies:
+      - supports-color
+
   mdast-util-gfm-footnote@2.1.0(supports-color@9.4.0):
     dependencies:
       '@types/mdast': 4.0.4
@@ -26330,11 +26537,29 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  mdast-util-gfm-strikethrough@2.0.0:
+    dependencies:
+      '@types/mdast': 4.0.4
+      mdast-util-from-markdown: 2.0.3
+      mdast-util-to-markdown: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
+
   mdast-util-gfm-strikethrough@2.0.0(supports-color@9.4.0):
     dependencies:
       '@types/mdast': 4.0.4
       mdast-util-from-markdown: 2.0.3(supports-color@9.4.0)
       mdast-util-to-markdown: 2.0.0
+    transitivePeerDependencies:
+      - supports-color
+
+  mdast-util-gfm-table@2.0.0:
+    dependencies:
+      '@types/mdast': 4.0.4
+      devlop: 1.1.0
+      markdown-table: 3.0.4
+      mdast-util-from-markdown: 2.0.3
+      mdast-util-to-markdown: 2.1.0
     transitivePeerDependencies:
       - supports-color
 
@@ -26348,12 +26573,33 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  mdast-util-gfm-task-list-item@2.0.0:
+    dependencies:
+      '@types/mdast': 4.0.4
+      devlop: 1.1.0
+      mdast-util-from-markdown: 2.0.3
+      mdast-util-to-markdown: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
+
   mdast-util-gfm-task-list-item@2.0.0(supports-color@9.4.0):
     dependencies:
       '@types/mdast': 4.0.4
       devlop: 1.1.0
       mdast-util-from-markdown: 2.0.3(supports-color@9.4.0)
       mdast-util-to-markdown: 2.0.0
+    transitivePeerDependencies:
+      - supports-color
+
+  mdast-util-gfm@3.1.0:
+    dependencies:
+      mdast-util-from-markdown: 2.0.3
+      mdast-util-gfm-autolink-literal: 2.0.1
+      mdast-util-gfm-footnote: 2.1.0
+      mdast-util-gfm-strikethrough: 2.0.0
+      mdast-util-gfm-table: 2.0.0
+      mdast-util-gfm-task-list-item: 2.0.0
+      mdast-util-to-markdown: 2.1.0
     transitivePeerDependencies:
       - supports-color
 
@@ -26366,6 +26612,18 @@ snapshots:
       mdast-util-gfm-table: 2.0.0(supports-color@9.4.0)
       mdast-util-gfm-task-list-item: 2.0.0(supports-color@9.4.0)
       mdast-util-to-markdown: 2.0.0
+    transitivePeerDependencies:
+      - supports-color
+
+  mdast-util-math@3.0.0:
+    dependencies:
+      '@types/hast': 3.0.5
+      '@types/mdast': 4.0.4
+      devlop: 1.1.0
+      longest-streak: 3.1.0
+      mdast-util-from-markdown: 2.0.3
+      mdast-util-to-markdown: 2.1.0
+      unist-util-remove-position: 5.0.0
     transitivePeerDependencies:
       - supports-color
 
@@ -26635,6 +26893,28 @@ snapshots:
   micromark-util-symbol@2.0.1: {}
 
   micromark-util-types@2.0.3: {}
+
+  micromark@4.0.0:
+    dependencies:
+      '@types/debug': 4.1.13
+      debug: 4.4.3
+      decode-named-character-reference: 1.3.0
+      devlop: 1.1.0
+      micromark-core-commonmark: 2.0.4
+      micromark-factory-space: 2.1.0
+      micromark-util-character: 2.1.1
+      micromark-util-chunked: 2.0.0
+      micromark-util-combine-extensions: 2.0.0
+      micromark-util-decode-numeric-character-reference: 2.0.0
+      micromark-util-encode: 2.0.0
+      micromark-util-normalize-identifier: 2.0.0
+      micromark-util-resolve-all: 2.0.0
+      micromark-util-sanitize-uri: 2.0.1
+      micromark-util-subtokenize: 2.0.0
+      micromark-util-symbol: 2.0.1
+      micromark-util-types: 2.0.3
+    transitivePeerDependencies:
+      - supports-color
 
   micromark@4.0.0(supports-color@9.4.0):
     dependencies:
@@ -26979,6 +27259,8 @@ snapshots:
   picocolors@1.1.1: {}
 
   picomatch@4.0.5: {}
+
+  picomatch@4.0.7: {}
 
   pkce-challenge@5.0.0: {}
 
@@ -28126,8 +28408,8 @@ snapshots:
   vite@6.4.3(@types/node@22.20.1)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0):
     dependencies:
       esbuild: 0.25.0
-      fdir: 6.5.0(picomatch@4.0.5)
-      picomatch: 4.0.5
+      fdir: 6.5.0(picomatch@4.0.7)
+      picomatch: 4.0.7
       postcss: 8.5.26
       rollup: 4.62.5
       tinyglobby: 0.2.17

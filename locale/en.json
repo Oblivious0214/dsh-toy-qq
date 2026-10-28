@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "QQ聊天界面（改版）",
-    "description": "QQ-style chat with custom avatars and backgrounds, with immersive QQ enabled by default."
+    "title": "QQ聊天界面 · Toy 分支",
+    "description": "QQ-style chat with built-in reply segmentation, avatars, backgrounds and Fish TTS voice display in one settings page."
   }
 }

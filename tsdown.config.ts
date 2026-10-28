@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 
 /** Plugin id used by the client closure-factory loader registration. */
-const PLUGIN_ID = 'dsh-toy-qq'
+const PLUGIN_ID: string = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).name
 
 /**
  * Two-face build mirroring the harness client preset (`clientBundle`):

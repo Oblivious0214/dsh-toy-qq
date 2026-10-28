@@ -5,11 +5,13 @@ export const QQ_FISH_VOICE_CSS = `
 [data-qq-fish-concealed] { display:none !important; }
 [data-qq-fish-card] { margin:4px 0 8px; max-width:100%; }
 [data-chat-segments-bubbles] [data-qq-fish-card] { padding:0 !important; border:0 !important; background:transparent !important; }
-[data-qq-fish-button] { display:inline-flex; align-items:center; gap:14px; box-sizing:border-box; max-width:100%; flex-wrap:nowrap; min-height:48px; padding:12px 16px; border:0; border-radius:16px; cursor:pointer; font:inherit; color:var(--dsw-alias-label-primary); background:var(--dsw-specific-bubble,var(--dsw-alias-bg-layer-1)); }
+[data-chat-segments-bubbles] > div > div > div:has([data-qq-fish-concealed]) { padding:0 !important; border:0 !important; background:transparent !important; }
+[data-chat-segments-bubbles] div:has(> [data-qq-fish-concealed]) > [data-qq-fish-card] { margin:0; }
+[data-qq-fish-button] { display:inline-flex; align-items:center; gap:14px; box-sizing:border-box; max-width:100%; flex-wrap:nowrap; min-height:calc(46px + var(--dsh-content-font-delta, 0px)); padding:10px 14px; border:1px solid var(--dsw-alias-border-l1); border-radius:16px 16px 16px 6px; cursor:pointer; font:inherit; line-height:calc(24px + var(--dsh-content-font-delta, 0px)); color:var(--dsw-alias-label-primary); background:var(--dsw-alias-bg-layer-1, #fff); }
 [data-qq-fish-button]:focus-visible { outline:2px solid var(--dsw-alias-brand-primary); outline-offset:3px; }
 [data-qq-fish-duration] { margin-left:auto; white-space:nowrap; }
-[data-qq-fish-wave] { flex-shrink:0; display:inline-flex; align-items:center; gap:3px; height:24px; }
-[data-qq-fish-wave] i { width:3px; height:14px; border-radius:2px; background:currentColor; }
+[data-qq-fish-wave] { flex-shrink:0; display:inline-flex; align-items:center; gap:3px; height:calc(24px + var(--dsh-content-font-delta, 0px)); }
+[data-qq-fish-wave] i { width:3px; height:14px; max-height:100%; border-radius:2px; background:currentColor; }
 [data-qq-fish-wave] i:nth-child(2n) { height:22px; }
 [data-state=playing] [data-qq-fish-wave] i { animation:qq-fish-wave .7s ease-in-out infinite alternate; }
 [data-qq-fish-transcript] { margin-top:8px; white-space:pre-wrap; overflow-wrap:anywhere; }
@@ -48,6 +50,7 @@ interface VoiceEntry {
   label: HTMLElement
   error: HTMLElement
   transcript: HTMLElement
+  revealed: boolean
   asset: VoiceAsset
 }
 export class QQFishVoiceRuntime {
@@ -62,7 +65,8 @@ export class QQFishVoiceRuntime {
   private session: string | undefined
   private sessionSince = Date.now()
   private widths = { min:160, max:360 }
-  constructor(private mode: QQSkinConfig['fishVoiceMode'] = 'transcript', widths?: QQSkinConfig['fishVoiceWidths']) {
+  constructor(private mode: QQSkinConfig['fishVoiceMode'] = 'transcript', widths?: QQSkinConfig['fishVoiceWidths'],
+    private synthesisMode: QQSkinConfig['fishVoiceGeneration'] = 'auto') {
     this.widths = resolveVoiceWidths(widths)
     if (typeof document === 'undefined' || !document.body || typeof MutationObserver === 'undefined') return
     this.observer = new MutationObserver(() => this.sync())
@@ -70,13 +74,27 @@ export class QQFishVoiceRuntime {
       attributeFilter:['data-qq-fish-final','data-qq-fish-time','data-conversation-session','data-streaming','data-text-interaction-source'] })
     this.sync()
   }
-  update(mode: QQSkinConfig['fishVoiceMode'], widths?: QQSkinConfig['fishVoiceWidths']) {
+  update(mode: QQSkinConfig['fishVoiceMode'], widths?: QQSkinConfig['fishVoiceWidths'],
+    synthesisMode: QQSkinConfig['fishVoiceGeneration'] = this.synthesisMode) {
     this.mode = mode
+    if (synthesisMode !== this.synthesisMode && synthesisMode === 'on-click') {
+      for (const asset of this.assets.values()) {
+        if (asset.promise && this.active?.asset !== asset) asset.request.abort()
+      }
+    }
+    this.synthesisMode = synthesisMode
     if (widths) this.widths = resolveVoiceWidths(widths)
     for (const entry of this.entries.values()) {
-      entry.transcript.hidden = entry.button.getAttribute('aria-expanded') !== 'true' || mode !== 'voice-text'
+      this.displayText(entry)
       this.render(entry)
     }
+    if (this.observer) this.sync()
+  }
+  private displayText(entry: VoiceEntry) {
+    // Keep the original Markdown and links when text is always visible.
+    entry.text.toggleAttribute('data-qq-fish-concealed', this.mode !== 'always-text')
+    entry.transcript.hidden = this.mode !== 'voice-text' || !entry.revealed
+    entry.button.setAttribute('aria-expanded', String(this.mode === 'always-text' || !entry.transcript.hidden))
   }
   private render(entry: VoiceEntry) {
     const { asset } = entry
@@ -146,18 +164,18 @@ export class QQFishVoiceRuntime {
           const transcript = document.createElement('div'); transcript.dataset.qqFishTranscript = ''
           transcript.textContent = `[${content}]`; transcript.hidden = true
           button.append(icon,wave,label); card.append(button,error,transcript)
-          const entry: VoiceEntry = {marker,flow,turn,text,content,card,button,label,error,transcript,asset}
+          const entry: VoiceEntry = {marker,flow,turn,text,content,card,button,label,error,transcript,asset,revealed:false}
           button.onclick = () => {
             if (this.active === entry) this.stop()
             else { this.stop(); void this.play(entry,this.generation) }
           }
           this.entries.set(text,entry); this.render(entry)
-          text.dataset.qqFishConcealed = ''; text.before(card)
+          this.displayText(entry); text.before(card)
         }
       }
       // Timestamp fence advances on every session switch, including history reloads.
       // Only finalized replies from this viewing session are automatically synthesized.
-      if (this.session && Number(marker.dataset.qqFishTime) > this.sessionSince) {
+      if (this.synthesisMode === 'auto' && this.session && Number(marker.dataset.qqFishTime) > this.sessionSince) {
         for (const entry of this.entries.values()) if (entry.marker === marker && !entry.asset.attempted) void this.prepare(entry.asset).catch(() => {})
       }
     }
@@ -169,7 +187,14 @@ export class QQFishVoiceRuntime {
   }
   private prepare(asset: VoiceAsset): Promise<void> {
     if (asset.audio && asset.duration) return Promise.resolve()
-    if (asset.promise) return asset.promise
+    if (asset.promise) {
+      if (!asset.request.signal.aborted) return asset.promise
+      // A click immediately after changing settings waits for cancellation to finish.
+      return asset.promise.catch(() => {}).then(() => {
+        if (this.assets.get(asset.key) !== asset) throw new DOMException('Cancelled','AbortError')
+        return this.prepare(asset)
+      })
+    }
     asset.request = new AbortController(); asset.attempted = true; delete asset.error
     const signal = asset.request.signal
     const task = new Promise<void>((resolve,reject) => {
@@ -188,6 +213,7 @@ export class QQFishVoiceRuntime {
       const cancelled = signal.aborted
       this.drop(asset)
       delete asset.duration
+      if (cancelled && this.synthesisMode === 'on-click') asset.attempted = false
       if (!cancelled) {
         asset.error = error instanceof Error ? error.message : '语音生成失败，请点击重试'
       }
@@ -231,7 +257,7 @@ export class QQFishVoiceRuntime {
   }
   private async play(entry: VoiceEntry, token: number): Promise<void> {
     this.active = entry; this.state(entry,'pending')
-    entry.transcript.hidden = this.mode !== 'voice-text'; entry.button.setAttribute('aria-expanded','true')
+    entry.revealed = true; this.displayText(entry)
     try {
       await this.prepare(entry.asset)
       if (token !== this.generation || !entry.card.isConnected) return

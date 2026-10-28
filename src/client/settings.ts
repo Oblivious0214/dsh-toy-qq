@@ -12,6 +12,7 @@
  * ⚠ 本文件保持零运行时依赖(不 import schemastery/react),客户端 bundle
  * 与宿主 schema 均可安全引用;schema 本体放宿主侧(settings-schema.ts)。
  */
+import type { Settings as SegmentSettings } from './segments/config.ts'
 import { type QQSkinConfig, type QQSkinPalette } from './config.ts'
 
 /** 设置命名空间 == profile 条目 id(cordis.patch.yml 的 `id`)。 */
@@ -25,6 +26,7 @@ export interface AvatarBindings {
 
 /** 设置分节里的持久化字段:形状与 QQSkinConfig 一致,全部可缺省。 */
 export interface QQSkinSettings {
+  segments?: Partial<SegmentSettings>
   avatarImage?: string
   avatarBindings?: AvatarBindings
   chatBackground?: string
@@ -38,6 +40,7 @@ export interface QQSkinSettings {
   immersiveQQ?: boolean
   fishVoiceWidths?: QQSkinConfig['fishVoiceWidths']
   fishVoiceMode?: QQSkinConfig['fishVoiceMode']
+  fishVoiceGeneration?: QQSkinConfig['fishVoiceGeneration']
 }
 
 /**
@@ -54,6 +57,7 @@ export function settingsToConfig(
   return {
     fishVoiceWidths: s.fishVoiceWidths ?? fallback?.fishVoiceWidths ?? {min:160,max:360},
     fishVoiceMode: s.fishVoiceMode ?? fallback?.fishVoiceMode ?? 'voice-text',
+    fishVoiceGeneration: s.fishVoiceGeneration ?? fallback?.fishVoiceGeneration ?? 'auto',
     avatarImage: s.avatarBindings?.defaultImage ?? s.avatarImage ?? fallback?.avatarImage ?? '',
     conversationAvatars: s.avatarBindings?.conversations ?? fallback?.conversationAvatars ?? {},
     chatBackground: s.chatBackground ?? fallback?.chatBackground ?? '',

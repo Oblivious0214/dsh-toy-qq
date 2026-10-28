@@ -7,7 +7,6 @@ import { vi } from 'vitest'
  * defineStore/store 来自 runtime/client),故须在 import 前 stub 全局
  * `window`,让工厂的注册调用被吞掉。
  */
-vi.stubGlobal('window', { __ModuleLoader__: { load() {} } })
-
-// @ts-expect-error vitest 会为每个文件重置;此处保证 module 顶层已就绪
-globalThis.window = { __ModuleLoader__: { load() {} } } as typeof globalThis
+if (typeof window === 'undefined') {
+  vi.stubGlobal('window', { __ModuleLoader__: { load() {} } })
+}

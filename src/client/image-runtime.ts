@@ -1,5 +1,6 @@
 import type { QQSkinConfig } from './config.ts'
 import { imageCopy, openImageEditor, type ImageKind } from './image-editor.ts'
+import { PersonaAvatarClient, PERSONA_AVATAR_EVENT, type PersonaAvatarUpdate } from './persona-avatar.ts'
 export interface ImageSaveTarget { sessionId?: string; makeDefault?: boolean }
 
 /** Adds accessible avatar buttons to existing and streaming assistant rows. */
@@ -9,6 +10,17 @@ export class QQImageRuntime {
   private buttons = new Set<HTMLButtonElement>()
   private config: QQSkinConfig
   private renderedImages = new WeakMap<HTMLButtonElement, string>()
+  private readonly personaAvatars = new PersonaAvatarClient(() => this.sync())
+  private avatarTimer: ReturnType<typeof setInterval> | undefined
+  private readonly onPersonaAvatar = (event: Event) => {
+    const detail = (event as CustomEvent<PersonaAvatarUpdate>).detail
+    if (detail && typeof detail.sessionId === 'string') this.setPersonaAvatar(detail)
+  }
+
+  /** Optional integration API; manual conversation avatars always take precedence. */
+  setPersonaAvatar(update: PersonaAvatarUpdate): boolean {
+    return this.personaAvatars.set(update)
+  }
 
   constructor(config: QQSkinConfig, private readonly save: (kind: ImageKind, image: string, target: ImageSaveTarget) => Promise<unknown>) {
     this.config = config
@@ -16,6 +28,10 @@ export class QQImageRuntime {
     if (typeof document === 'undefined' || !document.body || typeof MutationObserver === 'undefined') return
     this.observer = new MutationObserver(() => this.sync())
     this.observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-conversation-session'] })
+    document.addEventListener(PERSONA_AVATAR_EVENT, this.onPersonaAvatar)
+    this.avatarTimer = setInterval(() => {
+      if (document.visibilityState !== 'hidden') this.sync()
+    }, 3000)
     this.sync()
   }
 
@@ -62,7 +78,7 @@ export class QQImageRuntime {
         if (selected) this.edit('avatar', selected)
       }
       const image = sessionId && Object.hasOwn(this.config.conversationAvatars, sessionId)
-        ? this.config.conversationAvatars[sessionId]! : ''
+        ? this.config.conversationAvatars[sessionId]! : sessionId ? this.personaAvatars.get(sessionId) : ''
       if (this.renderedImages.get(button) !== image) {
         button.style.backgroundImage = image ? `url("${image}")` : ''
         button.style.backgroundColor = image ? 'transparent' : ''
@@ -74,6 +90,9 @@ export class QQImageRuntime {
   }
 
   dispose() {
+    clearInterval(this.avatarTimer)
+    this.personaAvatars.dispose()
+    if (typeof document !== 'undefined') document.removeEventListener(PERSONA_AVATAR_EVENT, this.onPersonaAvatar)
     this.observer?.disconnect()
     this.closeEditor?.()
     for (const button of this.buttons) button.remove()

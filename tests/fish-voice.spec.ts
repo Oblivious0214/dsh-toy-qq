@@ -48,6 +48,65 @@ function fixture(turn = '1', message = 'm1') {
 }
 const tick = () => new Promise(resolve => setTimeout(resolve,20))
 describe('QQ voice replies', () => {
+  it.each(['always-text', 'voice-text', 'transcript'] as const)('keeps %s display independent from generation timing', async mode => {
+    const root = document.createElement('section'); root.dataset.conversationSession = 'current'; document.body.append(root)
+    const f = fixture(); root.append(f.flow)
+    f.texts[0]!.innerHTML = '<strong>第一段</strong><a href="/details">详情</a>'
+    runtime = new QQFishVoiceRuntime(mode,undefined,'on-click')
+    f.marker.dataset.qqFishTime = String(Date.now()+1); await tick()
+    expect(fetcher).not.toHaveBeenCalled()
+    expect(f.buttons().every(button => button.textContent === '▶语音')).toBe(true)
+    expect(f.texts[0]!.hasAttribute('data-qq-fish-concealed')).toBe(mode !== 'always-text')
+    expect(f.texts[0]!.querySelector('a')?.getAttribute('href')).toBe('/details')
+    const transcript = f.flow.querySelector<HTMLElement>('[data-qq-fish-transcript]')!
+    expect(transcript.hidden).toBe(true)
+    f.buttons()[0]!.click(); await tick()
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(f.buttons()[0]!.textContent).toContain('3秒')
+    expect(transcript.hidden).toBe(mode !== 'voice-text')
+    expect(clips[0]!.play).toHaveBeenCalledOnce()
+    runtime.update(mode,undefined,'auto'); await tick()
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(f.buttons()[1]!.textContent).toContain('3秒')
+    // Automatic generation never starts the second clip playing.
+    expect(clips[1]!.play).not.toHaveBeenCalled()
+  })
+  it('hot-switches text visibility without generating audio or losing the original markup', async () => {
+    const f = fixture(); runtime = new QQFishVoiceRuntime('voice-text',undefined,'on-click')
+    const transcript = f.flow.querySelector<HTMLElement>('[data-qq-fish-transcript]')!
+    runtime.update('always-text')
+    expect(f.texts[0]!.hasAttribute('data-qq-fish-concealed')).toBe(false)
+    expect(transcript.hidden).toBe(true)
+    runtime.update('voice-text')
+    expect(f.texts[0]!.hasAttribute('data-qq-fish-concealed')).toBe(true)
+    expect(transcript.hidden).toBe(true)
+    f.buttons()[0]!.click(); await tick()
+    runtime.update('transcript'); expect(transcript.hidden).toBe(true)
+    runtime.update('always-text'); expect(f.texts[0]!.hasAttribute('data-qq-fish-concealed')).toBe(false)
+    runtime.update('voice-text'); expect(transcript.hidden).toBe(false)
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+  it('switching to click generation cancels background work and leaves subsequent segments ungenerated', async () => {
+    const root = document.createElement('section'); root.dataset.conversationSession = 'current'; document.body.append(root)
+    const f = fixture(); root.append(f.flow)
+    f.texts[0]!.insertAdjacentHTML('afterend','<div data-text-interaction-source>第三段</div>')
+    const finishes: ((value: unknown) => void)[] = []
+    fetcher.mockImplementation(() => new Promise(resolve => finishes.push(resolve)))
+    runtime = new QQFishVoiceRuntime('voice-text')
+    f.marker.dataset.qqFishTime = String(Date.now()+1); await tick()
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    runtime.update('voice-text',undefined,'on-click')
+    expect(fetcher.mock.calls.every(call => call[1].signal.aborted)).toBe(true)
+    for (const finish of finishes) finish({ok:true,blob:async () => new Blob(['audio'])})
+    await tick()
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(clips).toHaveLength(0)
+    expect(f.buttons().every(button => button.textContent === '▶语音')).toBe(true)
+    fetcher.mockResolvedValue({ok:true,blob:async () => new Blob(['audio'])})
+    f.buttons()[0]!.click(); await tick()
+    expect(fetcher).toHaveBeenCalledTimes(3)
+    expect(clips[0]!.play).toHaveBeenCalledOnce()
+  })
   it('prepares only new current-session replies, deduplicates click, uses duration widths and cancels on switch', async () => {
     const root = document.createElement('section'); root.dataset.conversationSession = 'current'; document.body.append(root)
     const f = fixture(); root.append(f.flow)
@@ -186,7 +245,7 @@ describe('QQ voice replies', () => {
   })
   it('never invents a duration', () => {
     expect(voiceDuration(undefined)).toBe('语音'); expect(voiceDuration('Infinity')).toBe('语音')
-    expect(voiceDuration('0')).toBe('语音'); expect(voiceDuration('3.01')).toBe('4秒')
+    expect(voiceDuration('0')).toBe('语音'); expect(voiceDuration('3.01')).toBe('4秒'); expect(voiceDuration('0.1')).toBe('1秒')
   })
 })
 describe('optional Fish slot adapter', () => {

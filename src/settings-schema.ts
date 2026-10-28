@@ -12,11 +12,13 @@
  */
 import type { Volatile } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
-import { QQ_SKIN_PALETTES, type QQSkinPalette } from './client/config.ts'
+import { QQ_SKIN_PALETTES, type QQSkinPalette, type QQSkinConfig } from './client/config.ts'
+import { DEFAULTS as SEGMENT_DEFAULTS, type Settings as SegmentSettings } from './client/segments/config.ts'
 import type { AvatarBindings } from './client/settings.ts'
 
 /** 设置字段的运行时形状:volatile 字段在 Live 配置里以 ref 形式存在。 */
 export interface Config {
+  segments: Volatile<SegmentSettings>
   avatarImage: Volatile<string>
   avatarBindings: Volatile<AvatarBindings>
   chatBackground: Volatile<string>
@@ -35,11 +37,23 @@ export interface Config {
   typing: Volatile<boolean>
   immersiveQQ: Volatile<boolean>
   fishVoiceWidths: Volatile<{ min: number; max: number }>
-  fishVoiceMode: Volatile<'voice-text' | 'transcript'>
+  fishVoiceMode: Volatile<QQSkinConfig['fishVoiceMode']>
+  fishVoiceGeneration: Volatile<QQSkinConfig['fishVoiceGeneration']>
 }
 
 /** 设置分节 schema:宿主校验条目配置、设置面板渲染表单共用。 */
 export const Config = z.object({
+  segments: z.object({
+    enabled: z.boolean().default(true),
+    repeatAvatars: z.boolean().default(true),
+    regex: z.string().default(SEGMENT_DEFAULTS.regex),
+    threshold: z.number().min(1).max(20000).default(1000),
+    animate: z.boolean().default(true),
+    intervalMin: z.number().min(0).max(10).default(.5),
+    intervalMax: z.number().min(0).max(10).default(1.5),
+    intervalMethod: z.union(['random', 'log']).default('random'),
+    logBase: z.number().min(1.1).max(10).default(2.6),
+  }).default(SEGMENT_DEFAULTS).volatile(),
   avatarImage: z.string().default('').volatile(),
   avatarBindings: z.object({
     defaultImage: z.string(),
@@ -56,5 +70,6 @@ export const Config = z.object({
   immersiveQQ: z.boolean().default(true).volatile(),
   fishVoiceWidths: z.object({ min:z.number().min(140).max(640).required(), max:z.number().min(140).max(640).required() })
     .default({min:160,max:360}).volatile(),
-  fishVoiceMode: z.union(['voice-text', 'transcript']).default('voice-text').volatile(),
+  fishVoiceMode: z.union(['always-text', 'voice-text', 'transcript']).default('voice-text').volatile(),
+  fishVoiceGeneration: z.union(['auto', 'on-click']).default('auto').volatile(),
 })

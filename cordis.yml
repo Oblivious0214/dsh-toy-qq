@@ -1,3 +1,3 @@
-# dsh-toy-qq: prebuilt local test archive
-# dsh plugin --profile web add "C:/Downloads/dsh-toy-qq-0.4.6-enhanced.tgz"
-# dsh plugin --profile web remove dsh-toy-qq
+# dsh-qq-skin: Toy branch prebuilt release archive
+# dsh plugin --profile web add "https://github.com/Oblivious0214/dsh-toy-qq/releases/download/v0.2.0-toy.4/dsh-qq-skin-0.2.0-toy.4.tgz"
+# dsh plugin --profile web remove dsh-qq-skin

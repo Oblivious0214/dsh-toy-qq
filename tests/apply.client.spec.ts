@@ -61,7 +61,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('dsh-toy-qq client apply', () => {
+describe('dsh-qq-skin client apply', () => {
   it('declares theme plus settings-collaboration services', () => {
     expect(inject).toEqual(['theme', 'slots', 'locale', 'remote', 'configForms'])
   })
@@ -179,7 +179,7 @@ describe('dsh-toy-qq client apply', () => {
     ctx.provide('theme', { overrideTokens: vi.fn(() => vi.fn()) } as unknown as ThemeRuntime)
     ctx.provide('configForms', { get: () => host.form } as never)
     ctx.provide('slots', {
-      inject: (_: string, thunk: () => () => void) => { thunk() },
+      inject: (name: string, thunk: () => () => void) => { if (name === 'settings.section') thunk() },
       register: (options: { inject: (actions: never) => Record<string, (value: never) => void> }) => {
         injected = options.inject({ sync: vi.fn() } as never)
         return () => {}
@@ -193,8 +193,9 @@ describe('dsh-toy-qq client apply', () => {
     injected!.setBackgroundFit!('contain' as never)
     injected!.setImmersiveQQ!(true as never)
     injected!.setFishVoiceMode!('transcript' as never)
+    injected!.setFishVoiceGeneration!('on-click' as never)
 
-    expect(host.written).toEqual([['palette', 'green'], ['chatMaxWidth', 640], ['backgroundFit', 'contain'], ['immersiveQQ', true], ['fishVoiceMode', 'transcript']])
+    expect(host.written).toEqual([['palette', 'green'], ['chatMaxWidth', 640], ['backgroundFit', 'contain'], ['immersiveQQ', true], ['fishVoiceMode', 'transcript'], ['fishVoiceGeneration', 'on-click']])
   })
 
   it('removes the layer through the effect cleanup on dispose', async () => {
@@ -239,7 +240,7 @@ describe('dsh-toy-qq client apply', () => {
 
   it('registers only a dedicated QQ Interface section with a localized navigation label', () => {
     const register = vi.fn(() => () => {})
-    const injectSlot = vi.fn((_: string, thunk: () => () => void) => { thunk() })
+    const injectSlot = vi.fn((name: string, thunk: () => () => void) => { if (name === 'settings.section') thunk() })
     let label = 'QQ界面'
     const ctx = new Context()
     ctx.provide('theme', { overrideTokens: vi.fn(() => vi.fn()) } as unknown as ThemeRuntime)
@@ -256,7 +257,7 @@ describe('dsh-toy-qq client apply', () => {
     const options = register.mock.calls[0]![0]
     expect(options.id).toBe('qq-interface')
     expect(options.name).toBe('settings.section')
-    expect(injectSlot.mock.calls.map(call => call[0])).toEqual(['settings.section'])
+    expect(injectSlot.mock.calls.map(call => call[0])).toEqual(['conversation.chat.node', 'settings.section'])
     expect(options.label()).toBe('QQ界面')
     label = 'QQ Interface'
     expect(options.label()).toBe('QQ Interface')

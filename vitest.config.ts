@@ -8,7 +8,7 @@ const pkg = (name: string): string =>
 
 export default defineConfig({
   test: {
-    include: ['tests/**/*.spec.ts'],
+    include: ['tests/**/*.spec.ts', 'tests/**/*.spec.tsx'],
     setupFiles: ['vitest.setup.ts'],
     environment: 'node',
     hookTimeout: 20_000,
@@ -19,7 +19,13 @@ export default defineConfig({
     // 浏览器闭包工厂(lib/client.js,顶层执行 window.__ModuleLoader__),
     // 会把 defineStore 等运行时导出吞成 undefined。这里把用到的那几个
     // 指到纯 ESM 类型产物(lib/types/client/index.js,node 可正常导入)。
+    dedupe: ['react', 'react-dom'],
     alias: {
+      'react': fileURLToPath(new URL('../deepseek-harness/apps/desktop/node_modules/react', import.meta.url)),
+      'react-dom': fileURLToPath(new URL('../deepseek-harness/apps/desktop/node_modules/react-dom', import.meta.url)),
+      '@deepseek-ai/dsh-client-ui-slots': fileURLToPath(new URL('../deepseek-harness/packages/client/ui-slots/lib/types/index.js', import.meta.url)),
+      '@deepseek-ai/dsh-client-ui-primitives': fileURLToPath(new URL('./tests/segments/native-primitives.ts', import.meta.url)),
+      '@deepseek-ai/dsh-util-workspace-path': fileURLToPath(new URL('../deepseek-harness/packages/util/workspace-path/lib/types/index.js', import.meta.url)),
       '@deepseek-ai/dsh-client-ui-theme/client': pkg('dsh-client-ui-theme'),
       '@deepseek-ai/dsh-client-ui-settings/client': pkg('dsh-client-ui-settings'),
       '@deepseek-ai/dsh-client-locale/client': pkg('dsh-client-locale'),
