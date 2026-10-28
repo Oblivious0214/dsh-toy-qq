@@ -16,16 +16,17 @@ function skin(marker = QQ_LAYOUT_PLUGIN) {
   row.append(source)
   return { style, row, source }
 }
-it('reads the active conversation avatar and positions each repeated avatar beside its own bubble', () => {
+it('finds bubble anchors without reading layout or changing the source', () => {
   const { row, source, style } = skin()
   const root = document.createElement('div'); root.innerHTML = '<div><div><div>一</div><div>二</div></div></div>'; row.append(root)
   vi.spyOn(root, 'getBoundingClientRect').mockReturnValue({ top: 20, left: 100 } as DOMRect)
   root.querySelectorAll(':scope > div > div > div').forEach((bubble, i) => vi.spyOn(bubble, 'getBoundingClientRect').mockReturnValue({ top: 20 + i * 60, left: 100 } as DOMRect))
   const before = source.outerHTML
-  expect(readAvatars(root)?.positions).toEqual([{ top: 8, left: -47 }, { top: 68, left: -47 }])
-  expect(readAvatars(root)?.style.backgroundImage).toContain('AAAA')
+  expect(readAvatars(root)?.bubbles).toEqual([...root.querySelectorAll(':scope > div > div > div')])
+  expect(root.getBoundingClientRect).not.toHaveBeenCalled()
+  for (const bubble of root.querySelectorAll(':scope > div > div > div')) expect(bubble.getBoundingClientRect).not.toHaveBeenCalled()
   expect(source.outerHTML).toBe(before)
-  style.remove()
+  style.remove(); source.remove()
   expect(readAvatars(root)).toBeUndefined()
 })
 it('updates per-conversation images, delegates editing, and restores on toggle/skin removal', async () => {
@@ -47,14 +48,15 @@ it('updates per-conversation images, delegates editing, and restores on toggle/s
     expect(mount.querySelectorAll('[data-segment-avatar]')).toHaveLength(2)
     await act(async () => (mount.querySelector('[data-segment-avatar]') as HTMLButtonElement).click())
     expect(edit).toHaveBeenCalledTimes(1)
-    source.style.backgroundImage = 'url("data:image/png;base64,BBBB")'; await settle()
-    expect((mount.querySelector('[data-segment-avatar]') as HTMLElement).style.backgroundImage).toContain('BBBB')
+    source.setAttribute('aria-label', '编辑头像'); await settle()
+    expect(mount.querySelector('[data-segment-avatar]')?.getAttribute('aria-label')).toContain('编辑头像')
+    expect(mount.querySelector('[data-segment-avatar]')?.parentElement?.textContent).toBe('一')
     await act(async () => root.render(<View enabled={false} />))
     expect(mount.querySelector('[data-repeat-avatars]')).toBeNull()
     expect(source.isConnected).toBe(true)
     await act(async () => root.render(<View enabled />))
     expect(mount.querySelectorAll('[data-segment-avatar]')).toHaveLength(2)
-    style.remove(); await settle()
+    style.remove(); source.remove(); await settle()
     expect(mount.querySelector('[data-segment-avatar]')).toBeNull()
   } finally { act(() => root.unmount()) }
 })

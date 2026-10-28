@@ -10,14 +10,14 @@ export class PersonaAvatarClient {
   private entries = new Map<string, { image: string; checked: number; pending?: boolean }>()
   private controllers = new Set<AbortController>()
   private disposed = false
-  constructor(private readonly changed: () => void, private readonly request: typeof fetch = (...args) => fetch(...args)) {}
+  constructor(private readonly changed: (sessionId: string) => void, private readonly request: typeof fetch = (...args) => fetch(...args)) {}
 
   set({ sessionId, image }: PersonaAvatarUpdate): boolean {
     if (!sessionId || sessionId.length > 512 || sessionId === '__proto__') return false
     const safe = image === null ? '' : resolveImage(image)
     if (image !== null && !safe) return false
     this.entries.set(sessionId, {image:safe, checked:Date.now()})
-    this.changed()
+    this.changed(sessionId)
     return true
   }
 
@@ -43,7 +43,7 @@ export class PersonaAvatarClient {
         this.controllers.delete(controller)
         pending.pending = false
         pending.checked = Date.now()
-        if (!this.disposed) this.changed()
+        if (!this.disposed && this.entries.get(sessionId) === pending) this.changed(sessionId)
       })
     }
     return entry?.image ?? ''

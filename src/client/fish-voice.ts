@@ -69,7 +69,9 @@ export class QQFishVoiceRuntime {
     private synthesisMode: QQSkinConfig['fishVoiceGeneration'] = 'auto') {
     this.widths = resolveVoiceWidths(widths)
     if (typeof document === 'undefined' || !document.body || typeof MutationObserver === 'undefined') return
-    this.observer = new MutationObserver(() => this.sync())
+    this.observer = new MutationObserver(records => {
+      if (records.some(record => this.affectsChat(record))) this.sync()
+    })
     this.observer.observe(document.body, { subtree:true, childList:true, characterData:true, attributes:true,
       attributeFilter:['data-qq-fish-final','data-qq-fish-time','data-conversation-session','data-streaming','data-text-interaction-source'] })
     this.sync()
@@ -122,6 +124,19 @@ export class QQFishVoiceRuntime {
     for (const asset of this.assets.values()) this.drop(asset)
     this.assets.clear()
   }
+  /** Ignore widget, composer and our own control changes before touching history. */
+  private affectsChat(record: MutationRecord): boolean {
+    const target = record.target.nodeType === 1 ? record.target as Element : record.target.parentElement
+    if (target?.closest('[data-qq-fish-card]')) return false
+    if (record.type === 'attributes') return true
+    if (record.type === 'characterData') return !!target?.closest('[data-text-interaction-source]')
+    const changed = [...record.addedNodes, ...record.removedNodes].filter(node => node.nodeType !== 1
+      || !(node as Element).matches('[data-qq-fish-card],[data-qq-avatar],[data-segment-avatar]'))
+    if (!changed.length) return false
+    if (target?.closest('[data-chat-flow]')) return true
+    return changed.some(node => node.nodeType === 1 && ((node as Element).matches('[data-chat-flow],[data-conversation-session],[data-qq-fish-final]')
+      || (node as Element).querySelector('[data-chat-flow],[data-conversation-session],[data-qq-fish-final]')))
+  }
   private sync() {
     const session = document.querySelector('[data-conversation-session]')?.getAttribute('data-conversation-session') ?? undefined
     if (session !== this.session) {
@@ -133,15 +148,29 @@ export class QQFishVoiceRuntime {
         this.restore(entry); this.entries.delete(text)
       }
     }
+    const rowsByFlow = new Map<Element, Map<string, HTMLElement[]>>()
+    const entriesByMarker = new Map<HTMLElement, VoiceEntry[]>()
+    for (const entry of this.entries.values()) {
+      const group = entriesByMarker.get(entry.marker) ?? []
+      group.push(entry); entriesByMarker.set(entry.marker, group)
+    }
     for (const marker of document.querySelectorAll<HTMLElement>('[data-qq-fish-final]')) {
       const tail = marker.closest('[data-chat-flow-kind="turn-tail"]')
       const flow = tail?.closest('[data-chat-flow]')
       const turn = tail?.getAttribute('data-chat-turn')
       if (!tail || !flow || turn == null) continue
       if ((marker.closest('[data-conversation-session]')?.getAttribute('data-conversation-session') ?? undefined) !== this.session) continue
-      const rows = [...flow.querySelectorAll<HTMLElement>('[data-chat-flow-kind="assistant-step"]')]
-        .filter(row => row.getAttribute('data-chat-turn') === turn && row.dataset.chatGroupPart !== 'reasoning'
-          && Boolean(row.compareDocumentPosition(tail) & Node.DOCUMENT_POSITION_FOLLOWING))
+      let byTurn = rowsByFlow.get(flow)
+      if (!byTurn) {
+        byTurn = new Map(); rowsByFlow.set(flow, byTurn)
+        for (const row of flow.querySelectorAll<HTMLElement>('[data-chat-flow-kind="assistant-step"]')) {
+          if (row.dataset.chatGroupPart === 'reasoning') continue
+          const key = row.getAttribute('data-chat-turn') ?? ''
+          const group = byTurn.get(key) ?? []; group.push(row); byTurn.set(key, group)
+        }
+      }
+      const rows = (byTurn.get(turn) ?? []).filter(row => Boolean(row.compareDocumentPosition(tail) & Node.DOCUMENT_POSITION_FOLLOWING))
+      const markerEntries = entriesByMarker.get(marker) ?? []
       let index = 0
       for (const row of rows) {
         if (row.querySelector('[data-streaming]')) continue
@@ -169,14 +198,14 @@ export class QQFishVoiceRuntime {
             if (this.active === entry) this.stop()
             else { this.stop(); void this.play(entry,this.generation) }
           }
-          this.entries.set(text,entry); this.render(entry)
+          this.entries.set(text,entry); markerEntries.push(entry); this.render(entry)
           this.displayText(entry); text.before(card)
         }
       }
       // Timestamp fence advances on every session switch, including history reloads.
       // Only finalized replies from this viewing session are automatically synthesized.
       if (this.synthesisMode === 'auto' && this.session && Number(marker.dataset.qqFishTime) > this.sessionSince) {
-        for (const entry of this.entries.values()) if (entry.marker === marker && !entry.asset.attempted) void this.prepare(entry.asset).catch(() => {})
+        for (const entry of markerEntries) if (!entry.asset.attempted) void this.prepare(entry.asset).catch(() => {})
       }
     }
     const used = new Set([...this.entries.values()].map(entry => entry.asset))

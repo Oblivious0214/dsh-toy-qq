@@ -52,6 +52,23 @@ it('segments history immediately, preserves frozen data and restores on settings
   await act(async () => f.model.adopt({ ...DEFAULTS, regex: '。' }))
   expect(f.container.querySelectorAll('p')).toHaveLength(2)
 })
+it('decodes standalone QQ timing, buffers streaming, and cancels waiting when disabled', async () => {
+  vi.useFakeTimers()
+  const packet = '[qq]' + JSON.stringify({ version: 1, stages: [
+    { text: '第一段。仍是同一段。', durationMs: 500 }, { text: '第二段。', durationMs: 1000 }] }) + '[/qq]'
+  const f = await fixture('running', packet)
+  expect(f.container.textContent).toBe('')
+  await act(async () => { await vi.advanceTimersByTimeAsync(2000) })
+  expect(f.container.textContent).toBe('')
+  f.props.node.data.status = 'settled'; await f.render()
+  expect(f.container.querySelectorAll('p')).toHaveLength(1)
+  expect(f.container.textContent).toBe('第一段。仍是同一段。')
+  await act(async () => { await vi.advanceTimersByTimeAsync(499) })
+  expect(f.container.querySelectorAll('p')).toHaveLength(1)
+  await act(async () => f.model.adopt({ ...DEFAULTS, enabled: false }))
+  expect(f.container.querySelectorAll('p')).toHaveLength(2)
+  expect(f.container.textContent).not.toContain('[qq]')
+})
 it('paces live replies and releases the final tail after completion', async () => {
   vi.useFakeTimers()
   const f = await fixture('running')
@@ -61,6 +78,22 @@ it('paces live replies and releases the final tail after completion', async () =
   f.props.node.data.status = 'settled'; await f.render()
   await act(async () => { await vi.advanceTimersByTimeAsync(1500) })
   expect(f.container.querySelectorAll('p')).toHaveLength(2)
+})
+
+it('sending freezes displayed text through late worker results, settings changes and timers', async () => {
+  vi.useFakeTimers()
+  const f = await fixture('running')
+  const chat = JSON.stringify({ users: [], replies: [{ turn: 1, step: 1 }], partial: null })
+  f.model.observeInput(undefined as unknown as string, chat, '[]')
+  await act(async () => { await vi.advanceTimersByTimeAsync(1500) })
+  const shown = f.container.textContent
+  expect(shown).toBe('你好。')
+  await act(async () => f.model.observeInput(undefined as unknown as string, chat, '["sent"]'))
+  f.props.node.data.status = 'settled'; await f.render()
+  await act(async () => { await vi.advanceTimersByTimeAsync(10000) })
+  expect(f.container.textContent).toBe(shown)
+  await act(async () => f.model.adopt({ ...DEFAULTS, enabled: false }))
+  expect(f.container.textContent).toBe(shown)
 })
 it('shows protected streaming code immediately without a playback button', async () => {
   const code = await fixture('running', '```js\nhello。\n```')

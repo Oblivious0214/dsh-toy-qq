@@ -34,7 +34,8 @@ it.each([['source', apply], ['compiled closure', builtApply!]] as const)('%s reg
   expect(ctx.slots.entries('settings.general.item')).toHaveLength(0)
   expect(ctx.slots.entries('settings.section').map(entry => [entry.options.id, entry.options.label])).toEqual([['qq-interface', expect.any(Function)]])
   config = { segments: { ...config.segments, enabled: false } }; for (const fn of changes) fn()
-  expect(ctx.slots.entriesOfSlot('conversation.chat.node')[0]).toBe(native)
+  // Disabled pacing retains the decoder so historical [qq] packets stay readable.
+  expect(ctx.slots.entriesOfSlot('conversation.chat.node')[0]).not.toBe(native)
   config = { segments: { ...config.segments, enabled: true } }; for (const fn of changes) fn()
   expect(ctx.slots.entries('conversation.chat.node')).toHaveLength(2)
   await fiber.dispose()

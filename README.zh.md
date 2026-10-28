@@ -1,3 +1,5 @@
+> 0.2.0-toy.7：性能修订。删除头像定时扫描和分段头像坐标测量，语音更新忽略无关界面变化并按轮次索引消息。保留 toy.6 的发送中断行为、分段、头像编辑和语音功能。安装包见下方 GitHub 预发布附件。
+
 # QQ 聊天界面
 
 > **先看这里：「沉浸式 QQ」默认开启。**
@@ -20,7 +22,9 @@ QQ 插件已内置「对话分段」，一句回复可以分成多个聊天气�
 
 ## 安装
 
-下载 [v0.2.0-toy.4 发布附件](https://github.com/Oblivious0214/dsh-toy-qq/releases/tag/v0.2.0-toy.4) 中的 `dsh-qq-skin-0.2.0-toy.4.tgz`，在 DSH 插件页通过本地安装包入口安装，完成后按提示重启。源码 ZIP 不用于安装；附件以 Release 实际发布为准。
+**安装前请注意：QQ 聊天界面可能与其他 UI 美化插件冲突，强烈建议先关闭其他 UI 美化插件，再安装或启用本插件。** 其他皮肤、主题美化、气泡或聊天布局插件可能覆盖同一界面；独立对话分段插件也应先停用，避免重复渲染。安装后先确认界面正常，再按需逐个恢复其他插件；出现错位、重复气泡或按钮异常时，先关闭可能冲突的插件并按提示重启。
+
+下载 [v0.2.0-toy.7 发布附件](https://github.com/Oblivious0214/dsh-toy-qq/releases/tag/v0.2.0-toy.7) 中的 `dsh-qq-skin-0.2.0-toy.7.tgz`，在 DSH 插件页通过本地安装包入口安装，完成后按提示重启。源码 ZIP 不用于安装；附件以 Release 实际发布为准。
 
 维护分支：[feat/dsh-toy-qq](https://github.com/Oblivious0214/dsh-toy-qq/tree/feat/dsh-toy-qq)。完整改动与兼容范围见 [发布说明](RELEASE.md)。本分支通过 GitHub 附件分发，不向 npm 发布同名包。
 
@@ -28,7 +32,7 @@ QQ 插件已内置「对话分段」，一句回复可以分成多个聊天气�
 
 语音功能需另装并配置 **Fish TTS**，再打开输入框的 **语音回复** 开关；音色在 Fish TTS 设置里调整。不需要语音时，直接当皮肤使用即可。
 
-联动玩具 `0.2.0-preview.19` 的编排回复按各阶段指定时间显示，QQ 保留其段落边界并跳过随机等待；普通回复保持原有分段行为。
+当前版本为 `0.2.0-toy.7`。开启分段显示即向 AI 加入分段与显示间隔规则，无需联动设备。AI 指定的间隔优先；没有指定时沿用原间隔设置；关闭「新回复逐段出现」则立即显示。配合联动玩具 `0.2.0-preview.20`，授权接入后可在对应段落切换动作，共用计时避免重复等待。
 
 ## 对话分段
 
@@ -48,4 +52,4 @@ QQ 插件已内置「对话分段」，一句回复可以分成多个聊天气�
 
 分段实现来自本工作区 `dsh-toy-segments@0.1.8`（提交 `494cda401aaa9acc7028a716bd7debb9a444bad8`），保留其 [来源说明](docs/segments-attribution.md)、[MIT 许可](docs/segments-LICENSE.txt) 和 [Markdown 组件许可](SEGMENTS-THIRD-PARTY-NOTICES.txt)。
 
-当前包名：`dsh-qq-skin` · 版本：`0.2.0-toy.4` · [验证记录](VALIDATION.md) · [历史与技术说明](docs/README.previous.md)
+当前包名：`dsh-qq-skin` · 版本：`0.2.0-toy.7` · [验证记录](VALIDATION.md) · [历史与技术说明](docs/README.previous.md)

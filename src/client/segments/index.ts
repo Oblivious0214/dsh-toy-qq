@@ -9,6 +9,7 @@ import { Model } from './model.ts'
 import { createSettings } from './settings.tsx'
 import { createView } from './view.tsx'
 import { BUBBLE_CSS } from './bubbles.ts'
+import { createInputObserver } from './observer.tsx'
 
 
 /** Register a reversible node renderer, keeping the original entry and message stores intact. */
@@ -17,6 +18,9 @@ export function installSegments(ctx: Context, host: ConfigForm<QQSkinSettings>) 
   ctx.effect(() => () => model.dispose())
   const adopt = () => { const value = host.getSnapshot().value; if (value) model.adopt(value.segments ?? {}) }
   ctx.effect(() => host.subscribe(adopt)); adopt()
+  ctx.slots.inject('conversation.input.left', () => ctx.slots.register({
+    name: 'conversation.input.left', id: 'qq-segments-input-observer', order: 100,
+  }, createInputObserver(model)))
 
   ctx.slots.inject('conversation.chat.node', () => {
     const style = document.createElement('style')
@@ -26,7 +30,8 @@ export function installSegments(ctx: Context, host: ConfigForm<QQSkinSettings>) 
     let remove: (() => void) | undefined
     let original: unknown
     const refresh = () => {
-      if (!model.getSnapshot().config.enabled) { remove?.(); remove = undefined; original = undefined; return }
+      // Keep decoding stored envelopes when disabled; show their text immediately.
+      // Only the prompt, splitting and pacing depend on the enabled switch.
       const entries = ctx.slots.entries('conversation.chat.node')
       const candidate = entries.find(e => e.options.key === 'assistant-step' && e.locale === 'chat' && e.children?.['conversation.chat.reasoning.body'] && e.children?.['conversation.chat.message.images'])
       if (candidate === original) return

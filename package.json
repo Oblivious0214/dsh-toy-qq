@@ -1,7 +1,7 @@
 {
   "name": "dsh-qq-skin",
   "description": "QQ 聊天界面，内置对话分段、头像背景和 Fish TTS 语音显示适配。",
-  "version": "0.2.0-toy.4",
+  "version": "0.2.0-toy.7",
   "keywords": [
     "deepseek",
     "deepseek-harness",
@@ -68,14 +68,16 @@
     "cordis.patch.yml",
     "SEGMENTS-THIRD-PARTY-NOTICES.txt",
     "docs/segments-attribution.md",
-    "docs/segments-LICENSE.txt"
+    "docs/segments-LICENSE.txt",
+    "vendor/dialogue-timing",
+    "lib/vendor/dialogue-timing"
   ],
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
   "scripts": {
     "prepare": "pnpm run build",
-    "build": "node scripts/build-segments-worker.mjs && tsc -p tsconfig.json && tsdown",
+    "build": "node scripts/build-segments-worker.mjs && node scripts/copy-dialogue-timing.mjs && tsc -p tsconfig.json && tsdown",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -98,6 +100,7 @@
     "@deepseek-ai/schemastery": "workspace:^",
     "@types/node": "^22.20.0",
     "@types/react": "^18.3.31",
+    "@types/react-dom": "18.3.0",
     "happy-dom": "^20.12.2",
     "tsdown": "^0.22.2",
     "tsx": "^4.22.4",

@@ -4,9 +4,15 @@ export const BUBBLE_CSS = `
 [data-chat-flow-kind='assistant-step']:has([data-repeat-avatars]) > button[data-qq-avatar] { visibility: hidden; }
 [data-chat-flow-kind='assistant-step']:has([data-repeat-avatars])::before { display: none; }
 [data-segment-avatar]:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary, #18b7f5); outline-offset: 3px; }
+[data-segment-avatar] {
+  position: absolute; top: 8px; left: -47px; width: 33px; height: 33px;
+  padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: var(--dsw-alias-bg-layer-1, #fff) var(--qq-avatar-image) center / cover no-repeat;
+}
 [data-chat-segments-bubbles] > div > div { gap: 12px; align-items: flex-start; }
 [data-chat-segments-bubbles] > div > div > div:not([data-turn-process-inline]) {
   box-sizing: border-box;
+  position: relative;
   width: fit-content;
   max-width: 100%;
   min-width: 0;

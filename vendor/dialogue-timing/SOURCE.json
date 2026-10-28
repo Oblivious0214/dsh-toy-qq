@@ -1,0 +1,12 @@
+{
+  "source": "ServeUDSH/shared/dialogue-timing",
+  "copied_on": "2026-10-28",
+  "license": "MIT",
+  "changes": "Unmodified snapshot of workspace-authored modules; not extracted from upstream or archive.",
+  "sha256": {
+    "protocol.js": "697ef79108450bf0761088327bdc6ac33886b15fee46e5958fc63d516530b6f4",
+    "protocol.d.ts": "969293038b0316091f44efdb7ad5dafd840b10dd0f1c54f8661faa6b772f8e42",
+    "interruptions.js": "d74a62d960326dc8a2272e37e0500c314b5c0fa048977b1f1b8a8aa09429ad57",
+    "interruptions.d.ts": "44127a298770a81c4163694c3b2c2112ae1798c0074d424a552e0f71496ab322"
+  }
+}

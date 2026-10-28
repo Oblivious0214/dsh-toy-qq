@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { createElement, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { ComponentType } from 'react'
 import type { AssistantBlock, ChatNodeViewProps, PresentationInjected } from '@deepseek-ai/dsh-client-ui-chat/client'
 import type { InjectFace, PropsRenderSlots, FactoryComponentPropsOf } from '@deepseek-ai/dsh-client-ui-slots'
@@ -7,6 +7,7 @@ import type { Model } from './model.ts'
 import { eligible } from './plain.ts'
 import { selectedSource } from './copy.ts'
 import { AvatarOverlay, useAvatars } from './avatars.tsx'
+import { parseTimedReply, stripTimedReply } from '../../../vendor/dialogue-timing/protocol.js'
 
 type Props = ChatNodeViewProps<'assistant-step'> & InjectFace<PresentationInjected>
 type OriginalProps = Props & Pick<PropsRenderSlots<'conversation.chat.reasoning.body' | 'conversation.chat.message.images'>, 'renderSlot'>
@@ -15,12 +16,49 @@ type OriginalProps = Props & Pick<PropsRenderSlots<'conversation.chat.reasoning.
 export function createView(model: Model, Original: ComponentType<OriginalProps>) {
   return function SegmentedView(props: Props) {
     const { config, status } = useSyncExternalStore(model.subscribe, model.getSnapshot)
-    const blocks = props.node.data.blocks
+    const originalBlocks = props.node.data.blocks
     // The toy plugin has already projected the stages on its shared motion/text clock.
     // This is a renderer-only flag, never taken from model text or persisted history.
-    const timeline = (props.node.data as typeof props.node.data & { dshToyTimeline?: boolean }).dshToyTimeline === true
+    const externalTimeline = (props.node.data as typeof props.node.data & { dshToyTimeline?: boolean }).dshToyTimeline === true
     const running = props.node.data.status === 'running'
+    const final = props.node.data.finalNode
+    const replyIdentity = final ?? props.node.data
+    const displayKey = `${props.sessionId}:${props.node.data.turn ?? ''}:${props.node.data.step ?? final?.messageId ?? ''}`
+    const frozen = externalTimeline ? undefined : model.frozen(displayKey, props.sessionId, replyIdentity)
+    const identity = `${props.sessionId}:${final?.messageId ?? ''}`
+    const previousIdentity = useRef(identity)
     const live = useRef(running)
+    if (previousIdentity.current !== identity) {
+      previousIdentity.current = identity
+      live.current = running
+    }
+    if (running) live.current = true
+    const source = originalBlocks.filter(block => block.kind === 'text').map(block => block.text).join('')
+    const decoded = useMemo(() => {
+      try { return { reply: externalTimeline ? null : parseTimedReply(source), error: '' } }
+      catch { return { reply: null, error: '分段回复格式无效，请让 AI 重试。' } }
+    }, [source, externalTimeline])
+    const reply = decoded.reply
+    const key = `${props.sessionId}:${final?.messageId ?? source}`
+    const progress = reply && !running ? model.clocks.project(key, source, reply,
+      live.current || (final?.time ?? 0) > model.clocks.openedAt, config) : null
+    const [, tick] = useState(0)
+    useEffect(() => {
+      if (frozen || externalTimeline || running || progress?.next == null) return
+      const timer = setTimeout(() => tick(value => value + 1), progress.next)
+      return () => clearTimeout(timer)
+    }, [frozen, externalTimeline, running, source, progress?.count, progress?.next])
+    const wrapped = !externalTimeline && /\[(?:qq\]|q?$)/.test(source)
+    const blocks = useMemo(() => {
+      if (externalTimeline) return originalBlocks
+      if (reply) return [...originalBlocks.filter(block => block.kind !== 'text'),
+        ...reply.stages.slice(0, running ? 0 : progress?.count ?? reply.stages.length).map(stage => ({ kind: 'text' as const, text: stage.text }))]
+      if (!wrapped) return originalBlocks
+      const text = stripTimedReply(source)
+      return [...originalBlocks.filter(block => block.kind !== 'text'),
+        { kind: 'text' as const, text: text || (running ? '' : decoded.error || '分段回复未完整生成，请重试。') }]
+    }, [originalBlocks, externalTimeline, reply, running, progress?.count, wrapped, source, decoded.error])
+    const timeline = externalTimeline || !!reply || wrapped
     const [result, setResult] = useState<{ source: typeof blocks; rule: string; parts: readonly AssistantBlock[] }>()
     const [visible, setVisible] = useState(0)
     const visibleRef = useRef(0)
@@ -37,7 +75,7 @@ export function createView(model: Model, Original: ComponentType<OriginalProps>)
 
     useEffect(() => {
       const controller = new AbortController()
-      if (!config.enabled || timeline) return () => controller.abort()
+      if (frozen || !config.enabled || timeline) return () => controller.abort()
       void Promise.all(blocks.map(async block => {
         if (block.kind !== 'text') return [block]
         const chunks = await model.worker.run(block.text, config.regex, config.threshold, controller.signal)
@@ -46,7 +84,7 @@ export function createView(model: Model, Original: ComponentType<OriginalProps>)
         if (!controller.signal.aborted) setResult({ source: blocks, rule, parts: groups.flat() })
       })
       return () => controller.abort()
-    }, [blocks, rule, config.enabled, model, timeline])
+    }, [frozen, blocks, rule, config.enabled, model, timeline])
 
     const current = result?.source === blocks && result.rule === rule
     // Pending history uses the native body; pending live output retains its previous projection.
@@ -56,6 +94,7 @@ export function createView(model: Model, Original: ComponentType<OriginalProps>)
     latest.current = { parts, count: current ? count : Math.min(count, visibleRef.current), config }
     useEffect(() => { clearTimeout(timer.current); timer.current = undefined }, [rule])
     useEffect(() => {
+      if (frozen) { clearTimeout(timer.current); timer.current = undefined; return }
       if (!config.enabled || !paced) {
         clearTimeout(timer.current); timer.current = undefined
         visibleRef.current = Math.max(visibleRef.current, textCount)
@@ -68,18 +107,20 @@ export function createView(model: Model, Original: ComponentType<OriginalProps>)
         if (visibleRef.current >= state.count) return
         const next = state.parts.filter(b => b.kind === 'text')[visibleRef.current]
         timer.current = setTimeout(() => {
+          if (model.frozen(displayKey, props.sessionId, replyIdentity)) return
           visibleRef.current += 1
           setVisible(visibleRef.current)
           tick()
         }, delay(next?.kind === 'text' ? next.text : '', state.config))
       }
       if (!timer.current) tick()
-    }, [parts, count, current, paced, config.enabled, rule])
+    }, [frozen, parts, count, current, paced, config.enabled, rule])
     useEffect(() => () => clearTimeout(timer.current), [])
 
     let index = 0
-    const projected = config.enabled ? parts.filter(block => block.kind !== 'text' || !paced || index++ < visible) : blocks
-    const node = config.enabled ? { ...props.node, data: { ...props.node.data, blocks: projected } } : props.node
+    const projected = frozen ?? (config.enabled ? parts.filter(block => block.kind !== 'text' || !paced || index++ < visible) : blocks)
+    if (!externalTimeline && !frozen) model.remember(displayKey, props.sessionId, projected)
+    const node = frozen || config.enabled || blocks !== originalBlocks ? { ...props.node, data: { ...props.node.data, blocks: projected } } : props.node
     useEffect(() => {
       const parent = anchor.current?.parentElement
       const root = anchor.current?.nextElementSibling

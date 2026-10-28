@@ -32,6 +32,7 @@ function avatarRule(image: string): string {
 [data-chat-flow-kind='assistant-step'] {
   position: relative;
   margin-left: 47px;
+  --qq-avatar-image: url("${image || QQ_AVATAR_DATA_URI}");
 }
 [data-chat-flow-kind='assistant-step']::before {
   content: '';

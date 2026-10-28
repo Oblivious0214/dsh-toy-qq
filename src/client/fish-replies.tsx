@@ -84,12 +84,22 @@ export function installFishReplies(slots: FishSlots, preference: VoiceReplyPrefe
   return () => { for (const dispose of disposers.splice(0)) dispose() }
 }
 
+type FinalNode = { kind?: string; messageId?: unknown; time?: number }
+const finalTimes = new WeakMap<readonly FinalNode[], Map<unknown, number>>()
+/** Share one timestamp index across all mounted action cells for a history snapshot. */
+export function finalMessageTime(nodes: readonly FinalNode[], messageId: unknown): number {
+  let times = finalTimes.get(nodes)
+  if (!times) {
+    times = new Map()
+    for (const node of nodes) if (node.kind === 'assistant' && !times.has(node.messageId)) times.set(node.messageId, node.time ?? 0)
+    finalTimes.set(nodes, times)
+  }
+  return times.get(messageId) ?? 0
+}
+
 /** Read the final node's actual timestamp; mounting history is not a new reply. */
 function FinalVoiceMarker(props: Record<string, unknown>) {
-  const useChat = props.useChat as (select: (state: { legacy: { nodes: readonly {
-    kind?: string; messageId?: unknown; time?: number
-  }[] } }) => number) => number
-  const time = useChat(state => state.legacy.nodes.find(node =>
-    node.kind === 'assistant' && node.messageId === props.messageId)?.time ?? 0)
+  const useChat = props.useChat as (select: (state: { legacy: { nodes: readonly FinalNode[] } }) => number) => number
+  const time = useChat(state => finalMessageTime(state.legacy.nodes, props.messageId))
   return <span hidden data-qq-fish-final={String(props.messageId)} data-qq-fish-time={time} />
 }

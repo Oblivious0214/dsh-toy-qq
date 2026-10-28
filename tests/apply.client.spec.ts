@@ -257,7 +257,7 @@ describe('dsh-qq-skin client apply', () => {
     const options = register.mock.calls[0]![0]
     expect(options.id).toBe('qq-interface')
     expect(options.name).toBe('settings.section')
-    expect(injectSlot.mock.calls.map(call => call[0])).toEqual(['conversation.chat.node', 'settings.section'])
+    expect(injectSlot.mock.calls.map(call => call[0])).toEqual(['conversation.input.left', 'conversation.chat.node', 'settings.section'])
     expect(options.label()).toBe('QQ界面')
     label = 'QQ Interface'
     expect(options.label()).toBe('QQ Interface')
