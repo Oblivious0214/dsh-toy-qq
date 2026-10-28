@@ -1,4 +1,6 @@
-# dsh-qq-skin
+# qq-skin-enhanced
+
+这是基于 [lispking/dsh-qq-skin](https://github.com/lispking/dsh-qq-skin) 的独立增强版，保留 MIT 许可证与原作者署名。当前提供本地预编译安装包，尚未发布 GitHub Release 或 npm。
 
 ## 自定义对话头像与背景
 
@@ -23,7 +25,7 @@
 [English](README.md)
 
 > **原理。** 皮肤由两层可逆贡献组成，不注册新主题 id，也不改动用户的浅色/深色/跟随系统偏好：
-> - **token 层** —— 激活时通过 `ctx.theme.overrideTokens('dsh-qq-skin', ...)` 叠加 `--dsw-*` 语义 token；每个 token 带 `{ light, dark }` 双色值，皮肤跟随当前基座而不是与它对抗。亮色蓝色贯穿表面、边框、交互与滚动条；暗色为 `#101822` 起的沉稳蓝灰刻度，蓝色只做点缀（品牌、气泡、主按钮）。token 集按色板变体生成（`buildTokenOverrides(palette)`）：五种色板共享中性蓝灰骨架，仅在人格 token 上分化。
+> - **token 层** —— 激活时通过 `ctx.theme.overrideTokens('qq-skin-enhanced', ...)` 叠加 `--dsw-*` 语义 token；每个 token 带 `{ light, dark }` 双色值，皮肤跟随当前基座而不是与它对抗。亮色蓝色贯穿表面、边框、交互与滚动条；暗色为 `#101822` 起的沉稳蓝灰刻度，蓝色只做点缀（品牌、气泡、主按钮）。token 集按色板变体生成（`buildTokenOverrides(palette)`）：五种色板共享中性蓝灰骨架，仅在人格 token 上分化。
 > - **布局层** —— 注入一个全局 `<style>` 标签（`qq-layout.ts`），负责几何与结构：聊天流居中收窄、用户气泡浅蓝带"尾巴"、助手消息左侧头像圆标 + 白色卡片（按 `data-chat-flow-kind='assistant-step'` 命中）、输入区胶囊化、会话头部细分割线、时间戳与滚动条、侧边栏会话行悬停/选中态 QQ 化。品牌区保持产品原样，QQ 感完全由蓝色 token 层体现。颜色一律经 `--dsw-*` token，暗色变体由 `body[data-ds-dark-theme]` 门控。CSS 按配置生成（`buildQQLayoutCss`）。
 >
 > 卸载时两层都随 effect 清理完整还原，产品默认外观回归。设置与配置变更经 `QQSkinRuntime.update` 热重挂两层，无需重启插件。
@@ -91,36 +93,22 @@ App 设置里注册的 **「QQ 皮肤」** 设置行，可视化切换色板 / �
 
 更早的 dsh 版本(0.1.x)与本插件不兼容:那时没有 `settings.configure` / `ctx.configForms`,也没有 volatile 配置投影;`pnpm i` 装的就是 0.2 的包。
 
-## 安装
+## 本地安装与测试
 
-一条命令即可装进 `web` profile：
-
-```sh
-dsh plugin --profile web add dsh-qq-skin
-```
-
-这就是全部流程：`dsh plugin` 首次使用自动初始化 profile，在 profile 目录里执行
-`pnpm add dsh-qq-skin`，然后按已安装状态协调 profile 的 bundle 层——因为
-`dsh-qq-skin` 声明了 `dsh.bundle.patch`（→ `cordis.patch.yml`），会自动加入
-bundle 栈。下次 `dsh web` 启动即装配它，客户端 bundle 被加载，`ui-theme`
-激活后皮肤层立即叠加。
-
-从本地开发目录安装（路径以你调用命令的目录为锚点；`link:` 前缀保持实时链接）：
+使用 DSH 0.2.1-rc.3 或兼容的更新 0.2.x 版本。下载安装包后，将下面的路径换成实际绝对路径：
 
 ```sh
-dsh plugin --profile web add ../dsh-qq-skin
-dsh plugin --profile web add link:../dsh-qq-skin
+dsh plugin --profile web add "C:/Downloads/qq-skin-enhanced-0.3.0.tgz"
 ```
 
-卸载同样一条命令：
+如果已安装原版，先执行 `dsh plugin --profile web remove dsh-qq-skin`，不要同时启用两个皮肤。
+按 DSH 提示重启或重新加载，然后进入“设置 → 常规 → QQ 皮肤”。
+安装包包含编译好的宿主和浏览器代码，无需自己编译或注册 npm；已有运行依赖仍可能由包管理器下载。
+也可在 DSH 的第三方插件安装入口填写 `.tgz` 的完整本地路径。
 
-```sh
-dsh plugin --profile web remove dsh-qq-skin
-```
-
-插件声明了 `dsh.client`（`platform: web`）并注入 `theme`/`slots`/`locale`/`remote`/`configForms`
-五个协作服务，Web 启动会加载
-其客户端 bundle，`ui-theme` 激活后立即叠加皮肤层。
+卸载：`dsh plugin --profile web remove qq-skin-enhanced`。
+本增强版保留原版 `qq-skin` 设置命名空间，同一 profile 的所有对话共用头像和背景。
+后续计划通过 GitHub Releases 发布手动更新包，流程见 [RELEASING.md](RELEASING.md)。
 
 ## 开发
 

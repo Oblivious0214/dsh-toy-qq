@@ -23,7 +23,7 @@ import { QQ_AVATAR_DATA_URI } from './qq-avatar.ts'
 import { QQ_SKIN_DEFAULT_CONFIG, resolveQQSkinConfig, type QQSkinConfig } from './config.ts'
 
 /** 注入的 <style> 标签归属标识(便于排查与测试断言)。 */
-export const QQ_LAYOUT_PLUGIN = 'dsh-qq-skin/layout'
+export const QQ_LAYOUT_PLUGIN = 'qq-skin-enhanced/layout'
 
 /** 企鹅头像圆标(默认开启时注入;关闭后无头像,也不占左侧空间)。 */
 function avatarRule(image: string): string {

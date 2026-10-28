@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsdown'
 
 /** Plugin id used by the client closure-factory loader registration. */
-const PLUGIN_ID = 'dsh-qq-skin'
+const PLUGIN_ID = 'qq-skin-enhanced'
 
 /**
  * Two-face build mirroring the harness client preset (`clientBundle`):
