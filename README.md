@@ -1,3 +1,9 @@
+> **本仓库已退役（2026-10-30）**
+>
+> 原独立分段、QQ 界面和人设功能已整合到 [dsh-qqbot](https://github.com/Oblivious0214/dsh-qqbot)。
+> 新安装请使用 [DSH 养鱼部署入口](https://github.com/Oblivious0214/dsh-fish-deploy)；设备联动继续由 [dsh-toy-buttplug](https://github.com/Oblivious0214/dsh-toy-buttplug) 提供。
+> 本仓库仅保留历史、原作者声明和旧 Release 下载，不再维护。新版不自动导入旧插件数据。
+
 > 0.2.0-toy.7：性能修订。删除头像定时扫描和分段头像坐标测量，语音更新忽略无关界面变化并按轮次索引消息。保留 toy.6 的发送中断行为、分段、头像编辑和语音功能。安装包见下方 GitHub 预发布附件。
 
 # QQ 聊天界面
