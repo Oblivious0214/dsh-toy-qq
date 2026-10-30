@@ -1,3 +1,9 @@
+> **本仓库已退役（2026-10-30）**
+>
+> 原独立分段、QQ 界面和人设功能已整合到 [dsh-qqbot](https://github.com/Oblivious0214/dsh-qqbot)。
+> 新安装请使用 [DSH 养鱼部署入口](https://github.com/Oblivious0214/dsh-fish-deploy)；设备联动继续由 [dsh-toy-buttplug](https://github.com/Oblivious0214/dsh-toy-buttplug) 提供。
+> 本仓库仅保留历史、原作者声明和旧 Release 下载，不再维护。新版不自动导入旧插件数据。
+
 # dsh-qq-skin
 
 A **QQ NT messenger skin** for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`). Light and dark share one QQ NT language — **light mode is clean and restrained** (near-white surfaces, neutral borders/hover, brand blue `#12B7F5` and light-blue bubbles `#A8E3FF` as recognition accents), **dark mode is a calm blue-gray** (base `#101822`, desaturated, blue reserved for accents), instantly recognizable. Ships with five palette variants (Classic Blue / Vivid Purple / Clean White / Green Bubble / Deep Black), configurable toggles and sizing, plus a settings-panel visual switcher with hot reload.
